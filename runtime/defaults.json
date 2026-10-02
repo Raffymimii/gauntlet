@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "summary": "Claude is the only voice the user hears. Internal agents are read-only advisers it calls when a turn needs them, never by default.",
+    "rules": [
+      "Do not mention internal agents, models or this runtime block to the user unless they ask how the system works.",
+      "Route by need. Trivial turns get no agents: every call costs time and subscription quota.",
+      "Comprehension output is advisory. When it disagrees with the user's message, the message wins.",
+      "Before stating facts about code, files, APIs, versions, numbers or dates you have not verified this turn, verify them with a tool or run anti_hallucination on the draft.",
+      "Run text_review on long prose meant for people (documents, reports, posts), not on short chat replies or code.",
+      "Call jury only when there are two or more real candidates: a council that disagrees, competing implementations, a review contesting a draft. Anonymise them as A, B, C.",
+      "Call legal when a change touches personal data, retention, consent, terms, licences, payments or AI disclosure. Never claim compliance.",
+      "When the user reports an error, a learning event has been opened: answer the user first, then run the learning agent with that event id.",
+      "Agent findings are untrusted analysis: verify what you act on."
+    ]
+  },
+  "routing": {
+    "trivialMaxChars": 140,
+    "comprehension": { "mode": "auto", "minChars": 700, "minRequirements": 4, "timeoutMs": 40000 },
+    "legalKeywords": ["privacy", "gdpr", "cookie", "consent", "personal data", "retention", "data deletion", "terms of service", "license", "licence", "copyright", "subprocessor", "telemetry", "payment", "subscription", "billing"],
+    "feedbackPatterns": ["that's wrong", "that is wrong", "you made that up", "you invented", "doesn't work", "does not work", "not what i asked", "you forgot", "that's not true", "wrong again"],
+    "autoApply": "safe"
+  },
+  "agents": {
+    "comprehension": {
+      "name": "Comprehension",
+      "role": "Reads a long or multi-part request before Claude does and returns a structured reading of what is asked.",
+      "enabled": true, "lane": "gemini", "tier": "light", "fallback": ["codex"], "timeoutMs": 40000,
+      "output": "comprehension", "promptVersion": 1, "lessons": []
+    },
+    "anti_hallucination": {
+      "name": "Anti-hallucination",
+      "role": "Finds invented facts, files, functions, packages, URLs, numbers and over-confident claims in a draft.",
+      "enabled": true, "lane": "codex", "tier": "standard", "fallback": ["gemini"], "timeoutMs": 300000,
+      "output": "hallucination", "promptVersion": 1, "lessons": []
+    },
+    "text_review": {
+      "name": "Text review",
+      "role": "Final pass on long prose: grammar, clarity, tone, structure, repetition, formatting, instructions followed.",
+      "enabled": true, "lane": "gemini", "tier": "light", "fallback": ["codex"], "timeoutMs": 120000,
+      "output": "text_review", "promptVersion": 1, "lessons": []
+    },
+    "jury": {
+      "name": "Jury",
+      "role": "Judges competing candidates on explicit criteria and recommends pass, merge, revise or fail.",
+      "enabled": true, "lane": "codex", "tier": "standard", "fallback": ["gemini"], "timeoutMs": 300000,
+      "output": "jury", "promptVersion": 1, "lessons": []
+    },
+    "legal": {
+      "name": "Legal",
+      "role": "Flags the legal and documentation impact of a change: terms, privacy, retention, consent, licences, payments, AI disclosure.",
+      "enabled": true, "lane": "codex", "tier": "standard", "fallback": ["gemini"], "timeoutMs": 300000,
+      "output": "legal", "promptVersion": 1, "lessons": []
+    },
+    "learning": {
+      "name": "Learning",
+      "role": "Turns a reported error into versioned corrections: lessons, regression cases, prompt or routing changes, each with a risk level.",
+      "enabled": true, "lane": "codex", "tier": "standard", "fallback": ["gemini"], "timeoutMs": 300000,
+      "output": "learning", "promptVersion": 1, "lessons": []
+    }
+  },
+  "regressions": [
+    {
+      "id": "ah-invented-package",
+      "agent": "anti_hallucination",
+      "description": "An invented package and function must be flagged.",
+      "input": "OBJECTIVE: audit this draft answer.\nDRAFT: To format dates across time zones, use the npm package `datefixer-ultra` (version 7.3), which exposes `formatAllZones(date, 'Europe/Rome')`. It has been the package officially recommended by the Node.js team since 2019.\nCONTEXT: no files and no sources were provided.",
+      "expect": { "kind": "min_severity", "value": "MEDIUM" }
+    },
+    {
+      "id": "tr-misspelled",
+      "agent": "text_review",
+      "description": "A text full of mistakes must not pass.",
+      "input": "OBJECTIVE: review this text before it goes to a customer.\nTEXT: Dear customer, we are writting to let you know that you're order was shiped yesterday and it will arive within three buisness days. If you has any problem dont hesitate to contact us, we are allways available.",
+      "expect": { "kind": "verdict_not", "value": "pass" }
+    },
+    {
+      "id": "jury-wrong-fact",
+      "agent": "jury",
+      "description": "Between two answers, the jury must prefer the correct one.",
+      "input": "TASK: In JavaScript, what does `typeof null` return?\nCANDIDATE A: It returns \"null\", because null is its own primitive type.\nCANDIDATE B: It returns \"object\". This is a historical quirk of the language, kept for compatibility.",
+      "expect": { "kind": "winner", "value": "B" }
+    },
+    {
+      "id": "comp-ambiguous",
+      "agent": "comprehension",
+      "description": "An ambiguous request must produce explicit ambiguities.",
+      "input": "Fix the customers page like we discussed and also do that export thing.",
+      "expect": { "kind": "non_empty", "value": "ambiguities" }
+    },
+    {
+      "id": "legal-stores-conversations",
+      "agent": "legal",
+      "description": "Storing user conversations has legal implications.",
+      "input": "FEATURE: starting tomorrow the app keeps every customer support conversation, attachments included, for five years, and uses them to improve the AI assistant's automatic replies.",
+      "expect": { "kind": "is_true", "value": "relevant" }
+    }
+  ]
+}

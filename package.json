@@ -1,0 +1,43 @@
+{
+  "name": "claude-tandem",
+  "version": "0.1.0",
+  "description": "Pair Claude Code with Codex and Gemini: read-only second opinions over MCP, tiered models, automatic fallback, and a live-reloadable agent pipeline. Subscriptions only.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "tandem": "bin/tandem.mjs"
+  },
+  "main": "src/server.mjs",
+  "files": [
+    "bin/",
+    "src/",
+    "hooks/",
+    "prompts/",
+    "claude/",
+    "config/",
+    "runtime/",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "start": "node src/server.mjs"
+  },
+  "keywords": [
+    "claude-code",
+    "mcp",
+    "codex",
+    "gemini",
+    "code-review",
+    "multi-model",
+    "orchestration"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.0"
+  }
+}

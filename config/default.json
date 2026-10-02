@@ -1,0 +1,45 @@
+{
+  "tiers": {
+    "light": {
+      "codex": { "model": "gpt-5.6-luna", "effort": "low" },
+      "gemini": { "model": "gemini-3.8-flash-low" },
+      "oss": { "model": "gpt-oss-120b-medium" },
+      "timeoutMs": 150000
+    },
+    "standard": {
+      "codex": { "model": "gpt-5.6-terra", "effort": "medium" },
+      "gemini": { "model": "gemini-3.8-flash-high" },
+      "oss": { "model": "gpt-oss-120b-medium" },
+      "timeoutMs": 300000
+    },
+    "deep": {
+      "codex": { "model": "gpt-6-astra", "effort": "high" },
+      "gemini": { "model": "gemini-3.1-pro-high" },
+      "oss": { "model": "gpt-oss-120b-medium" },
+      "timeoutMs": 600000
+    }
+  },
+  "lanes": {
+    "codex": { "enabled": true },
+    "gemini": { "enabled": true },
+    "oss": { "enabled": true },
+    "claude": { "enabled": true, "model": "claude-sonnet-4-6" }
+  },
+  "fallback": {
+    "crossFamily": true
+  },
+  "providers": {
+    "codex": { "command": "codex", "home": null },
+    "antigravity": { "command": "agy", "home": null, "extraArgs": [] }
+  },
+  "limits": {
+    "maxConcurrent": 4,
+    "maxPacketChars": 48000,
+    "maxPathsPerCall": 40,
+    "maxFileBytes": 131072,
+    "maxDiffChars": 60000,
+    "maxOutputChars": 60000
+  },
+  "cache": { "enabled": true, "ttlMs": 3600000, "maxEntries": 300 },
+  "events": { "enabled": true }
+}

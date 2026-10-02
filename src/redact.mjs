@@ -49,7 +49,7 @@ const FORBIDDEN_FILE = new RegExp(`(^|${SEP})(${[
 ].join('|')})$`, 'i');
 
 const FORBIDDEN_DIR = new RegExp(
-  `(^|${SEP})(\\.ssh|\\.gnupg|\\.aws|\\.azure|\\.kube|\\.docker|\\.codex|\\.gemini|\\.claude|\\.tandem|\\.git)(${SEP}|$)`, 'i');
+  `(^|${SEP})(\\.ssh|\\.gnupg|\\.aws|\\.azure|\\.kube|\\.docker|\\.codex|\\.gemini|\\.claude|\\.gauntlet|\\.git)(${SEP}|$)`, 'i');
 
 export function isForbiddenPath(p) {
   return FORBIDDEN_FILE.test(p) || FORBIDDEN_DIR.test(p);

@@ -1,4 +1,4 @@
-// Settings: package defaults, overridden by ~/.tandem/config.json (or $TANDEM_HOME).
+// Settings: package defaults, overridden by ~/.gauntlet/config.json (or $GAUNTLET_HOME).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
 
 export const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-export const HOME = process.env.TANDEM_HOME
-  ? path.resolve(process.env.TANDEM_HOME)
-  : path.join(os.homedir(), '.tandem');
+export const HOME = process.env.GAUNTLET_HOME
+  ? path.resolve(process.env.GAUNTLET_HOME)
+  : path.join(os.homedir(), '.gauntlet');
 
 export const PATHS = {
   config: path.join(HOME, 'config.json'),
@@ -40,7 +40,7 @@ export const DEFAULTS = readJson(path.join(PACKAGE_ROOT, 'config', 'default.json
 
 /**
  * A broken user file must not take the tool down: fall back to the defaults and say why,
- * so `tandem status` can show it.
+ * so `gauntlet status` can show it.
  */
 export function loadConfig(file = PATHS.config) {
   let user = null;

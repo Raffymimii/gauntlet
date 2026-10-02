@@ -1,4 +1,4 @@
-// The status report shared by the MCP tool and `tandem status`.
+// The status report shared by the MCP tool and `gauntlet status`.
 import { config, HOME } from './config.mjs';
 import { providerStatus } from './providers.mjs';
 import { TIERS, pausedModels } from './router.mjs';

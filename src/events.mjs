@@ -1,6 +1,6 @@
 // Local event log: one JSON line per specialist or agent call, one file per month, under
-// ~/.tandem/events. Metadata only: what ran, on which model, how long, how many tokens.
-// Never prompts, file contents or answers. Nothing is sent anywhere; `tandem stats` reads it.
+// ~/.gauntlet/events. Metadata only: what ran, on which model, how long, how many tokens.
+// Never prompts, file contents or answers. Nothing is sent anywhere; `gauntlet stats` reads it.
 import fs from 'node:fs';
 import path from 'node:path';
 import { config, PATHS } from './config.mjs';

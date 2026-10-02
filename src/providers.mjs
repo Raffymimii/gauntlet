@@ -11,9 +11,9 @@ import { config } from './config.mjs';
 import { run, RunError, resolveCommand } from './process.mjs';
 import { extractJson } from './json.mjs';
 
-// Set on every child. A tandem server started inside one refuses to serve, so a
+// Set on every child. A gauntlet server started inside one refuses to serve, so a
 // specialist can never call further specialists.
-export const DEPTH_VAR = 'TANDEM_DEPTH';
+export const DEPTH_VAR = 'GAUNTLET_DEPTH';
 
 function tmpFile(prefix, ext) {
   return path.join(os.tmpdir(), `${prefix}-${crypto.randomBytes(8).toString('hex')}${ext}`);
@@ -34,8 +34,8 @@ function unlinkQuietly(file) {
 
 export async function callCodex({ packet, workdir, model, effort, timeoutMs, schema }) {
   const p = config.providers.codex;
-  const lastMessage = tmpFile('tandem-codex', '.txt');
-  const schemaFile = writeSchema(schema, 'tandem-codex-schema');
+  const lastMessage = tmpFile('gauntlet-codex', '.txt');
+  const schemaFile = writeSchema(schema, 'gauntlet-codex-schema');
   const args = [
     'exec',
     '--sandbox', 'read-only',
@@ -106,7 +106,7 @@ function codexAnswerFromEvents(stdout) {
 export async function callAntigravity({ packet, workdir, model, timeoutMs, schema }) {
   const p = config.providers.antigravity;
   const bin = resolveCommand(p.command || 'agy');
-  const schemaFile = writeSchema(schema, 'tandem-agy-schema');
+  const schemaFile = writeSchema(schema, 'gauntlet-agy-schema');
   const args = [
     ...bin.prefixArgs,
     '--mode', 'plan',

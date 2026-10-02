@@ -1,11 +1,11 @@
-// `tandem init` and `tandem uninstall`.
+// `gauntlet init` and `gauntlet uninstall`.
 //
 // What gets touched, and how it is undone:
 //   MCP server   registered through the official `claude mcp add` command (user scope)
-//   subagents    copied to ~/.claude/agents, each marked as installed by tandem; a file
-//                of the same name that tandem didn't install is left alone
+//   subagents    copied to ~/.claude/agents, each marked as installed by gauntlet; a file
+//                of the same name that gauntlet didn't install is left alone
 //   hooks        only with --hooks; merged into ~/.claude/settings.json after a backup,
-//                every entry tagged with --tandem so it can be found and removed again
+//                every entry tagged with --gauntlet so it can be found and removed again
 //   CLAUDE.md    only with --claude-md; one @-include line, tagged
 // Every step prints what it did. --dry-run prints and changes nothing.
 import fs from 'node:fs';
@@ -20,9 +20,9 @@ const SETTINGS = path.join(CLAUDE_DIR, 'settings.json');
 const AGENTS_DIR = path.join(CLAUDE_DIR, 'agents');
 const CLAUDE_MD = path.join(CLAUDE_DIR, 'CLAUDE.md');
 
-const TAG = '--tandem';
-const AGENT_MARK = '<!-- installed by tandem -->';
-const MD_MARK = '<!-- tandem -->';
+const TAG = '--gauntlet';
+const AGENT_MARK = '<!-- installed by gauntlet -->';
+const MD_MARK = '<!-- gauntlet -->';
 
 const slash = (p) => p.split(path.sep).join('/');
 
@@ -30,14 +30,14 @@ const slash = (p) => p.split(path.sep).join('/');
 // \, so a package path containing them could run something. Refuse rather than escape.
 export function assertSafePath(p) {
   if (/["$`\\!\n\r]/.test(slash(p))) {
-    throw new Error(`tandem is installed in a path with characters that are unsafe in a shell command (${p}). Move it to a plain path and run init again.`);
+    throw new Error(`gauntlet is installed in a path with characters that are unsafe in a shell command (${p}). Move it to a plain path and run init again.`);
   }
   return slash(p);
 }
 
 const nodeCmd = (script) => `node "${assertSafePath(path.join(PACKAGE_ROOT, script))}" ${TAG}`;
 
-// Functions, so that merely importing this module (tests, `tandem help`) never throws on
+// Functions, so that merely importing this module (tests, `gauntlet help`) never throws on
 // an unsafe install path; the check runs when hooks are actually being written.
 export const HOOK_SETS = {
   turn: () => ({
@@ -46,14 +46,14 @@ export const HOOK_SETS = {
   }),
   'review-gate': () => ({
     PreToolUse: [{ matcher: 'Bash|PowerShell', hooks: [{ type: 'command', command: nodeCmd('hooks/review-gate.mjs'), timeout: 10 }] }],
-    PostToolUse: [{ matcher: 'Edit|Write|MultiEdit|NotebookEdit|Agent|Task|mcp__tandem__.*', hooks: [{ type: 'command', command: nodeCmd('hooks/review-gate.mjs'), timeout: 10 }] }],
+    PostToolUse: [{ matcher: 'Edit|Write|MultiEdit|NotebookEdit|Agent|Task|mcp__gauntlet__.*', hooks: [{ type: 'command', command: nodeCmd('hooks/review-gate.mjs'), timeout: 10 }] }],
   }),
 };
 
 const ours = (h) => typeof h?.command === 'string' && h.command.endsWith(` ${TAG}`);
 
-/** Settings with every tandem hook removed; groups left empty are dropped. */
-export function withoutTandemHooks(settings) {
+/** Settings with every gauntlet hook removed; groups left empty are dropped. */
+export function withoutGauntletHooks(settings) {
   const out = structuredClone(settings);
   for (const [event, groups] of Object.entries(out.hooks || {})) {
     if (!Array.isArray(groups)) continue;
@@ -66,8 +66,8 @@ export function withoutTandemHooks(settings) {
   return out;
 }
 
-export function withTandemHooks(settings, sets) {
-  const out = withoutTandemHooks(settings);
+export function withGauntletHooks(settings, sets) {
+  const out = withoutGauntletHooks(settings);
   for (const name of sets) {
     for (const [event, groups] of Object.entries(HOOK_SETS[name]())) {
       out.hooks ??= {};
@@ -83,7 +83,7 @@ function readSettings() {
   try {
     return JSON.parse(raw);
   } catch (err) {
-    throw new Error(`${SETTINGS} is not valid JSON (${err.message}). Fix it first; tandem will not overwrite a file it cannot read.`);
+    throw new Error(`${SETTINGS} is not valid JSON (${err.message}). Fix it first; gauntlet will not overwrite a file it cannot read.`);
   }
 }
 
@@ -96,7 +96,7 @@ function writeAtomic(file, text) {
 
 function backup(file) {
   if (!fs.existsSync(file)) return null;
-  const to = `${file}.tandem-backup-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+  const to = `${file}.gauntlet-backup-${new Date().toISOString().replace(/[:.]/g, '-')}`;
   fs.copyFileSync(file, to);
   return to;
 }
@@ -118,14 +118,14 @@ export function init({ hooks = [], claudeMd = false, forceAgents = false, testAn
 
   // 1. MCP server
   const server = slash(path.join(PACKAGE_ROOT, 'src', 'server.mjs'));
-  const existing = claude(['mcp', 'get', 'tandem']);
+  const existing = claude(['mcp', 'get', 'gauntlet']);
   if (existing.missing) {
-    log(`! the claude CLI was not found. Register the server yourself:\n    claude mcp add --scope user tandem -- node "${server}"`);
+    log(`! the claude CLI was not found. Register the server yourself:\n    claude mcp add --scope user gauntlet -- node "${server}"`);
   } else if (existing.ok) {
-    log('- MCP server "tandem" is already registered');
+    log('- MCP server "gauntlet" is already registered');
   } else {
-    act(`register the MCP server: claude mcp add --scope user tandem -- node "${server}"`, () => {
-      const r = claude(['mcp', 'add', '--scope', 'user', 'tandem', '--', 'node', server]);
+    act(`register the MCP server: claude mcp add --scope user gauntlet -- node "${server}"`, () => {
+      const r = claude(['mcp', 'add', '--scope', 'user', 'gauntlet', '--', 'node', server]);
       if (!r.ok) throw new Error(`claude mcp add failed: ${r.out}`);
     });
   }
@@ -148,7 +148,7 @@ export function init({ hooks = [], claudeMd = false, forceAgents = false, testAn
 
   // 3. Hooks, only when asked for
   if (hooks.length) {
-    const next = withTandemHooks(readSettings(), hooks);
+    const next = withGauntletHooks(readSettings(), hooks);
     act(`add hooks (${hooks.join(', ')}) to ${SETTINGS}`, () => {
       const b = backup(SETTINGS);
       if (b) log(`  backup: ${b}`);
@@ -160,21 +160,21 @@ export function init({ hooks = [], claudeMd = false, forceAgents = false, testAn
   const include = `@${slash(path.join(PACKAGE_ROOT, 'prompts', 'orchestrator.md'))} ${MD_MARK}`;
   if (claudeMd) {
     const current = fs.existsSync(CLAUDE_MD) ? fs.readFileSync(CLAUDE_MD, 'utf8') : '';
-    if (current.includes(MD_MARK)) log(`- ${CLAUDE_MD} already includes the tandem rules`);
-    else act(`add the tandem rules to ${CLAUDE_MD}`, () => { backup(CLAUDE_MD); writeAtomic(CLAUDE_MD, `${current.trimEnd()}\n\n${include}\n`); });
+    if (current.includes(MD_MARK)) log(`- ${CLAUDE_MD} already includes the gauntlet rules`);
+    else act(`add the gauntlet rules to ${CLAUDE_MD}`, () => { backup(CLAUDE_MD); writeAtomic(CLAUDE_MD, `${current.trimEnd()}\n\n${include}\n`); });
   } else {
     log(`- to give Claude the working rules, add this line to ${CLAUDE_MD} (or rerun with --claude-md):\n    ${include.replace(` ${MD_MARK}`, '')}`);
   }
 
   log('\nDone. Open a NEW Claude Code chat: MCP servers and CLAUDE.md are only read when a chat starts.');
-  log('Then run `tandem status` to check that Codex and Antigravity are installed and signed in.');
+  log('Then run `gauntlet status` to check that Codex and Antigravity are installed and signed in.');
 }
 
 export function uninstall({ dryRun = false, log = console.log }) {
   const act = (what, fn) => { log(`${dryRun ? '[dry run] would ' : ''}${what}`); if (!dryRun) fn(); };
 
-  const r = claude(['mcp', 'get', 'tandem']);
-  if (r.ok) act('remove the MCP server "tandem"', () => claude(['mcp', 'remove', '--scope', 'user', 'tandem']));
+  const r = claude(['mcp', 'get', 'gauntlet']);
+  if (r.ok) act('remove the MCP server "gauntlet"', () => claude(['mcp', 'remove', '--scope', 'user', 'gauntlet']));
 
   if (fs.existsSync(AGENTS_DIR)) {
     for (const f of fs.readdirSync(AGENTS_DIR)) {
@@ -184,16 +184,16 @@ export function uninstall({ dryRun = false, log = console.log }) {
   }
 
   const settings = readSettings();
-  const cleaned = withoutTandemHooks(settings);
+  const cleaned = withoutGauntletHooks(settings);
   if (JSON.stringify(cleaned) !== JSON.stringify(settings)) {
-    act(`remove tandem hooks from ${SETTINGS}`, () => { backup(SETTINGS); writeAtomic(SETTINGS, `${JSON.stringify(cleaned, null, 2)}\n`); });
+    act(`remove gauntlet hooks from ${SETTINGS}`, () => { backup(SETTINGS); writeAtomic(SETTINGS, `${JSON.stringify(cleaned, null, 2)}\n`); });
   }
 
   if (fs.existsSync(CLAUDE_MD)) {
     const md = fs.readFileSync(CLAUDE_MD, 'utf8');
     if (md.includes(MD_MARK)) {
-      act(`remove the tandem line from ${CLAUDE_MD}`, () => writeAtomic(CLAUDE_MD, md.split('\n').filter((l) => !l.includes(MD_MARK)).join('\n')));
+      act(`remove the gauntlet line from ${CLAUDE_MD}`, () => writeAtomic(CLAUDE_MD, md.split('\n').filter((l) => !l.includes(MD_MARK)).join('\n')));
     }
   }
-  log('\nDone. Your data in ~/.tandem (events, cache, runtime versions) was left in place; delete it by hand if you want it gone.');
+  log('\nDone. Your data in ~/.gauntlet (events, cache, runtime versions) was left in place; delete it by hand if you want it gone.');
 }

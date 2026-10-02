@@ -1,6 +1,6 @@
 # Token savings
 
-The honest version: tandem doesn't make the total number of tokens in the world go down.
+The honest version: gauntlet doesn't make the total number of tokens in the world go down.
 A second review costs tokens. What it changes is **where** they are spent and **how many
 of them are spent on the expensive context**.
 
@@ -9,8 +9,8 @@ of them are spent on the expensive context**.
 **1. Small packets instead of the whole conversation.**
 A Claude Code session easily carries 100k+ tokens of context: the conversation, file
 reads, tool output. Asking Claude itself to "now review this carefully" re-reads that
-context. A tandem specialist gets a packet with the objective, the files named, the diff
-and the checks. That is usually a few thousand characters (`tandem stats` shows your
+context. A gauntlet specialist gets a packet with the objective, the files named, the diff
+and the checks. That is usually a few thousand characters (`gauntlet stats` shows your
 average), plus the provider CLI's own system prompt.
 
 **2. The work runs on other plans.**
@@ -51,7 +51,7 @@ a hypothesis.
 
 ## Measuring it yourself
 
-`tandem stats` reads the local event log (`~/.tandem/events`) and reports:
+`gauntlet stats` reads the local event log (`~/.gauntlet/events`) and reports:
 - calls, answers, failures and fallbacks;
 - cache hits, which are calls where no model ran at all;
 - input and output tokens per provider and model, when the CLI reports them;
@@ -62,10 +62,10 @@ To compare against a baseline:
 
 1. Pick a fixed set of tasks from your own work (say 10 changes: a few small, a few
    risky).
-2. Do them once with tandem installed and once without, in fresh chats, with the same
+2. Do them once with gauntlet installed and once without, in fresh chats, with the same
    instructions.
 3. For each run, record what Claude Code reports for the session (`/cost` or your plan's
-   usage page), and `tandem stats --days 1` for the tandem side.
+   usage page), and `gauntlet stats --days 1` for the gauntlet side.
 4. Compare Claude usage per task, total wall time, and defects found later.
 
 Publish your numbers with the method if you share them. We would rather show a measured

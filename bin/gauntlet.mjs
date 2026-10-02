@@ -1,28 +1,28 @@
 #!/usr/bin/env node
-// tandem command line. Run `tandem help` for the list.
+// gauntlet command line. Run `gauntlet help` for the list.
 import fs from 'node:fs';
 
-const HELP = `tandem: pair Claude Code with Codex and Gemini
+const HELP = `gauntlet: pair Claude Code with Codex and Gemini
 
 Setup
-  tandem init [--hooks turn,review-gate] [--claude-md] [--test-analyst] [--force-agents] [--dry-run]
-  tandem uninstall [--dry-run]
-  tandem status
+  gauntlet init [--hooks turn,review-gate] [--claude-md] [--test-analyst] [--force-agents] [--dry-run]
+  gauntlet uninstall [--dry-run]
+  gauntlet status
 
 Using it
-  tandem packet --workdir <dir> --objective "<text>" [--paths a,b] [--diff-file f]
+  gauntlet packet --workdir <dir> --objective "<text>" [--paths a,b] [--diff-file f]
         show exactly what a specialist would receive, without sending anything
-  tandem agent <id> [--workdir <dir>] [--paths a,b] [--objective "<text>"]
+  gauntlet agent <id> [--workdir <dir>] [--paths a,b] [--objective "<text>"]
                     [--input-file <file>] [--turn <id>] [--event <id>]
         ids: comprehension, anti_hallucination, text_review, jury, legal, learning
-  tandem stats [--days 30]
+  gauntlet stats [--days 30]
 
 Runtime configuration (versioned; open chats pick it up on their next message)
-  tandem runtime list | show [n] | export [n] | diff <a> <b>
-  tandem runtime publish <file.json> --reason "<why>"
-  tandem runtime rollback <n> [--reason "<why>"]
-  tandem runtime proposals | apply <id> | reject <id>
-  tandem regress [--only id1,id2] [--agent <id>]
+  gauntlet runtime list | show [n] | export [n] | diff <a> <b>
+  gauntlet runtime publish <file.json> --reason "<why>"
+  gauntlet runtime rollback <n> [--reason "<why>"]
+  gauntlet runtime proposals | apply <id> | reject <id>
+  gauntlet regress [--only id1,id2] [--agent <id>]
 `;
 
 const argv = process.argv.slice(2);
@@ -35,7 +35,7 @@ const list = (name) => (opt(name) || '').split(',').map((s) => s.trim()).filter(
 const print = (o) => console.log(typeof o === 'string' ? o : JSON.stringify(o, null, 2));
 
 function fail(message, code = 1) {
-  console.error(`tandem: ${message}`);
+  console.error(`gauntlet: ${message}`);
   process.exitCode = code;
 }
 
@@ -127,7 +127,7 @@ async function main() {
     }
 
     default:
-      return fail(`unknown command "${cmd}". Run tandem help.`);
+      return fail(`unknown command "${cmd}". Run gauntlet help.`);
   }
 }
 
@@ -154,7 +154,7 @@ async function runtimeCommand(sub, arg) {
       return print(diffConfigs(a.config, b.config).join('\n') || 'no differences');
     }
     case 'publish': {
-      if (!arg) return fail('usage: tandem runtime publish <file.json> --reason "<why>"');
+      if (!arg) return fail('usage: gauntlet runtime publish <file.json> --reason "<why>"');
       let cfg;
       try { cfg = JSON.parse(fs.readFileSync(arg, 'utf8')); } catch (err) { return fail(`cannot read ${arg}: ${err.message}`); }
       const r = await store.publish(cfg, { reason: opt('reason') });
@@ -181,7 +181,7 @@ async function runtimeCommand(sub, arg) {
       return print('rejected');
     }
     default:
-      return fail('usage: tandem runtime list|show|export|diff|publish|rollback|proposals|apply|reject');
+      return fail('usage: gauntlet runtime list|show|export|diff|publish|rollback|proposals|apply|reject');
   }
 }
 

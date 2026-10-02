@@ -14,7 +14,7 @@ Claude ── tool call ──► server.mjs
    findings.mjs remember the finding for this project ("seen before")
    report.mjs   render: verified / not checkable / could not be confirmed
    cache.mjs    store the result, keyed on the exact file contents
-   events.mjs   log metadata (model, time, tokens) for `tandem stats`
+   events.mjs   log metadata (model, time, tokens) for `gauntlet stats`
 ```
 
 ## The fallback chain
@@ -30,13 +30,13 @@ codex/deep -> codex/standard -> gemini/deep -> oss/deep -> claude (via Antigravi
 - **Stops:** a timeout. Trying elsewhere would double the wait.
 
 A model that failed is paused (20 minutes for quota, longer for "model not available").
-The pause is recorded in `~/.tandem/state/provider-health.json`, so every process sees it.
+The pause is recorded in `~/.gauntlet/state/provider-health.json`, so every process sees it.
 
 A council turns cross-family fallback off, so its voices stay distinct families.
 
 ## Internal agents
 
-The six agents in `prompts/agents/` are run by `tandem agent <id>`, and the
+The six agents in `prompts/agents/` are run by `gauntlet agent <id>`, and the
 comprehension agent also by the `turn` hook. Each one is defined in the runtime
 configuration by:
 - a lane;
@@ -59,7 +59,7 @@ Claude Code reads CLAUDE.md and starts MCP servers when a chat opens. The `turn`
 runs as a new process on every message, so it is the one place that can change behaviour
 in a chat that is already open:
 
-1. It reads the highest valid version in `~/.tandem/runtime/versions/`.
+1. It reads the highest valid version in `~/.gauntlet/runtime/versions/`.
 2. It compares it with the version that chat last saw (kept per session in
    `runtime/sessions/`).
 3. When the version is newer, it injects the policy and agent list as additional
@@ -73,9 +73,9 @@ hand-edited version file that fails validation is skipped.
 
 | Path | What |
 |---|---|
-| `~/.tandem/config.json` | your overrides |
-| `~/.tandem/cache/` | cached answers (1 hour) |
-| `~/.tandem/state/` | model pauses, review-gate state |
-| `~/.tandem/events/` | metadata log, one file per month |
-| `~/.tandem/findings/` | per-project memory of findings |
-| `~/.tandem/runtime/` | versions, sessions, traces, learning events, proposals |
+| `~/.gauntlet/config.json` | your overrides |
+| `~/.gauntlet/cache/` | cached answers (1 hour) |
+| `~/.gauntlet/state/` | model pauses, review-gate state |
+| `~/.gauntlet/events/` | metadata log, one file per month |
+| `~/.gauntlet/findings/` | per-project memory of findings |
+| `~/.gauntlet/runtime/` | versions, sessions, traces, learning events, proposals |

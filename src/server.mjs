@@ -45,7 +45,7 @@ function planSection(plan) {
 }
 
 const server = new McpServer(
-  { name: 'tandem', version: VERSION },
+  { name: 'gauntlet', version: VERSION },
   {
     capabilities: { tools: {} },
     instructions: 'Read-only second opinions from other model families. Send a minimal packet (objective, a few files, the diff, specific checks), never the conversation. Use the cheapest tier that can do the job. Calls fall back automatically when a provider is out of quota.',
@@ -102,12 +102,12 @@ server.registerTool('council', {
     : { isError: true, content: [{ type: 'text', text }] };
 });
 
-server.registerTool('tandem_status', {
-  title: 'tandem_status',
+server.registerTool('gauntlet_status', {
+  title: 'gauntlet_status',
   description: 'Which CLIs are installed and signed in, which model each tier uses, which models are paused after failures, and the limits in force. Call it after a failed call. Never shows credentials.',
   inputSchema: {},
 }, async () => ({ content: [{ type: 'text', text: await statusReport() }] }));
 
 await server.connect(new StdioServerTransport());
-if (NESTED) process.stderr.write('tandem: running inside a specialist; calls will be refused\n');
-if (config._error) process.stderr.write(`tandem: config error, using defaults: ${config._error}\n`);
+if (NESTED) process.stderr.write('gauntlet: running inside a specialist; calls will be refused\n');
+if (config._error) process.stderr.write(`gauntlet: config error, using defaults: ${config._error}\n`);

@@ -1,11 +1,11 @@
 {
-  "name": "claude-tandem",
+  "name": "gauntlet-mcp",
   "version": "0.1.0",
   "description": "Pair Claude Code with Codex and Gemini: read-only second opinions over MCP, tiered models, automatic fallback, and a live-reloadable agent pipeline. Subscriptions only.",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "tandem": "bin/tandem.mjs"
+    "gauntlet": "bin/gauntlet.mjs"
   },
   "main": "src/server.mjs",
   "files": [

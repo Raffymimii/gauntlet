@@ -1,5 +1,5 @@
 // The live runtime configuration: policy, routing, agents and regression cases, kept as
-// numbered versions under ~/.tandem/runtime/versions.
+// numbered versions under ~/.gauntlet/runtime/versions.
 //
 // Claude Code reads CLAUDE.md and starts MCP servers when a chat opens, then never again.
 // The pre-turn hook is a fresh process on every message, and it reads the highest version
@@ -244,7 +244,7 @@ export async function applyProposal(id, { automatic = false } = {}) {
   const p = readProposal(id);
   if (!p || p.status !== 'pending') return { ok: false, errors: ['no pending proposal with that id'] };
   if (p.kind !== 'lesson' && p.kind !== 'regression_case') {
-    return { ok: false, errors: [`a ${p.kind} has to be applied by hand: edit the configuration and run tandem runtime publish`] };
+    return { ok: false, errors: [`a ${p.kind} has to be applied by hand: edit the configuration and run gauntlet runtime publish`] };
   }
 
   const r = await publish((cfg) => {

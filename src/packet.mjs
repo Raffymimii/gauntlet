@@ -11,7 +11,7 @@ import { redact, isForbiddenPath } from './redact.mjs';
 
 export class PacketError extends Error {}
 
-const CREDENTIAL_DIR = /[\\/]\.(ssh|gnupg|aws|azure|kube|codex|gemini|claude|tandem)([\\/]|$)/i;
+const CREDENTIAL_DIR = /[\\/]\.(ssh|gnupg|aws|azure|kube|codex|gemini|claude|gauntlet)([\\/]|$)/i;
 
 export function resolveWorkdir(workdir) {
   if (!workdir || typeof workdir !== 'string') throw new PacketError('workdir is required: the absolute path of the project');

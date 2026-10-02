@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Optional review gate (install with `tandem init --hooks review-gate`).
+// Optional review gate (install with `gauntlet init --hooks review-gate`).
 //
 //   PostToolUse Edit/Write/...           remembers which code files changed this session
-//   PostToolUse on a tandem review tool  or the sonnet-reviewer / opus-architect subagent:
+//   PostToolUse on a gauntlet review tool  or the sonnet-reviewer / opus-architect subagent:
 //                                        the changes so far count as reviewed
 //   PostToolUse, many unreviewed edits   a one-line reminder in Claude's context
 //   PreToolUse Bash/PowerShell           a push or deploy is denied while code changes are
@@ -16,12 +16,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const STATE_DIR = path.join(process.env.TANDEM_HOME || path.join(os.homedir(), '.tandem'), 'state', 'review-gate');
+const STATE_DIR = path.join(process.env.GAUNTLET_HOME || path.join(os.homedir(), '.gauntlet'), 'state', 'review-gate');
 const FILES_THRESHOLD = 3;
 const EDITS_THRESHOLD = 8;
 const REMIND_EVERY = 5;
 
-const REVIEW_TOOL = /^mcp__tandem__(codex_review|gemini_review|council|quick_check|security_audit|edge_cases|codex_diagnose|plan_critique)$/;
+const REVIEW_TOOL = /^mcp__gauntlet__(codex_review|gemini_review|council|quick_check|security_audit|edge_cases|codex_diagnose|plan_critique)$/;
 const REVIEW_AGENT = /^(sonnet-reviewer|opus-architect)$/;
 
 // Commands that put code in front of other people.
@@ -109,7 +109,7 @@ function main() {
     say({
       hookSpecificOutput: {
         hookEventName: 'PostToolUse',
-        additionalContext: `[tandem] ${files} code file(s) / ${state.edits} edit(s) with no outside review. When this piece of work is stable, ask for one at the right tier: quick_check for small things, codex_review or gemini_review otherwise, council or security_audit for auth, payments, data or production.`,
+        additionalContext: `[gauntlet] ${files} code file(s) / ${state.edits} edit(s) with no outside review. When this piece of work is stable, ask for one at the right tier: quick_check for small things, codex_review or gemini_review otherwise, council or security_audit for auth, payments, data or production.`,
       },
     });
   }

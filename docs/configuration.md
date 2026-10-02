@@ -1,6 +1,6 @@
 # Configuration
 
-## ~/.tandem/config.json
+## ~/.gauntlet/config.json
 
 Anything you put here overrides [config/default.json](../config/default.json). Only list
 what you change:
@@ -28,11 +28,11 @@ what you change:
 | `providers.*.home` | run the CLI with a different home directory (separate login) |
 | `limits.*` | concurrency, packet size, files per call, bytes per file, output size |
 | `cache.enabled`, `cache.ttlMs` | result cache |
-| `events.enabled` | local metadata log used by `tandem stats` |
+| `events.enabled` | local metadata log used by `gauntlet stats` |
 
-If the file isn't valid JSON, tandem uses the defaults and `tandem status` says why.
+If the file isn't valid JSON, gauntlet uses the defaults and `gauntlet status` says why.
 
-`TANDEM_HOME` moves the whole data directory, which is handy for tests or for keeping
+`GAUNTLET_HOME` moves the whole data directory, which is handy for tests or for keeping
 two setups apart.
 
 ## Runtime configuration

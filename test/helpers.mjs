@@ -1,10 +1,10 @@
-// Every test process gets its own TANDEM_HOME, set before any src module loads.
+// Every test process gets its own GAUNTLET_HOME, set before any src module loads.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-export const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tandem-test-'));
-process.env.TANDEM_HOME = path.join(TMP, 'home');
+export const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'gauntlet-test-'));
+process.env.GAUNTLET_HOME = path.join(TMP, 'home');
 
 export function project(files) {
   const dir = fs.mkdtempSync(path.join(TMP, 'proj-'));

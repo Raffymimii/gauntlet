@@ -1,4 +1,4 @@
-// `tandem stats` and `tandem runtime diff`.
+// `gauntlet stats` and `gauntlet runtime diff`.
 
 function sum(rows, key) {
   return rows.reduce((n, r) => n + (Number.isFinite(r[key]) ? r[key] : 0), 0);
@@ -13,7 +13,7 @@ function fmt(n) {
 }
 
 export function renderStats(events) {
-  if (!events.length) return 'No calls recorded yet. Events are logged in ~/.tandem/events once tandem is in use.';
+  if (!events.length) return 'No calls recorded yet. Events are logged in ~/.gauntlet/events once gauntlet is in use.';
   const live = events.filter((e) => !e.cached);
   const cached = events.filter((e) => e.cached);
   const ok = events.filter((e) => e.status === 'ok');

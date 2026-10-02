@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// UserPromptSubmit / Stop hook: the per-message part of tandem.
+// UserPromptSubmit / Stop hook: the per-message part of gauntlet.
 //
 // It runs as a fresh process before Claude reads each message, so this is where a chat
 // that has been open for days picks up a runtime version published a minute ago. On each
@@ -11,7 +11,7 @@
 //   4. opens a learning event when the user reports an error.
 //
 // It never blocks a message. Any failure means "no extra context this turn".
-// Register it with a timeout of at least 60 seconds (tandem init does).
+// Register it with a timeout of at least 60 seconds (gauntlet init does).
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -97,11 +97,11 @@ async function main() {
     learningEvent = store.saveLearningEvent({ sessionKey: key, turnId, previousTurnId: sess.lastTurnId || null, runtimeVersion: snap.version, feedback: prompt.slice(0, 16000) });
   }
 
-  const agentCli = `node "${path.join(ROOT, 'bin', 'tandem.mjs')}" agent`;
-  const lines = [`[tandem runtime v${snap.version}, turn ${turnId}]`];
+  const agentCli = `node "${path.join(ROOT, 'bin', 'gauntlet.mjs')}" agent`;
+  const lines = [`[gauntlet runtime v${snap.version}, turn ${turnId}]`];
   if (stale) {
     lines.push(sess.version == null
-      ? 'First turn with the tandem runtime in this chat. The rules below apply from now on.'
+      ? 'First turn with the gauntlet runtime in this chat. The rules below apply from now on.'
       : `Runtime updated from v${sess.version} to v${snap.version}. The rules below replace the earlier ones from this turn on; the conversation so far stays valid.`);
     lines.push(`Policy: ${cfg.policy.summary}`);
     for (const r of cfg.policy.rules) lines.push(`- ${r}`);
@@ -150,6 +150,6 @@ async function main() {
 try {
   await main();
 } catch (err) {
-  if (event === 'UserPromptSubmit') emit(`[tandem: pre-turn hook error (${String(err?.message || err).slice(0, 160)}). Continuing without runtime context.]`);
+  if (event === 'UserPromptSubmit') emit(`[gauntlet: pre-turn hook error (${String(err?.message || err).slice(0, 160)}). Continuing without runtime context.]`);
 }
 process.exitCode = 0;

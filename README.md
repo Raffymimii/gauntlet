@@ -1,184 +1,220 @@
-# tandem
+<div align="center">
 
-**Second opinions for Claude Code from Codex and Gemini, using the subscriptions you already pay for.**
+# Gauntlet
 
-tandem is an MCP server plus a few hooks. Claude keeps doing the work and stays the only
-one that edits your files. When a change matters, it hands a small, focused packet to a
-model from another family (OpenAI's Codex CLI, or Gemini through Google's Antigravity
-CLI) and gets back a structured review. Before Claude reads that review, every finding is
-checked against your real files.
+**Make Claude's code run the gauntlet.**
 
+Codex, Gemini and GPT-OSS review what Claude Code writes, and every finding has to quote
+the line it's about. Gauntlet checks those quotes against your files before Claude reads a word.
+
+It uses the ChatGPT and Google subscriptions you already have. No API keys, no extra bill.
+
+[![CI](https://github.com/Raffymimii/gauntlet/actions/workflows/ci.yml/badge.svg)](https://github.com/Raffymimii/gauntlet/actions/workflows/ci.yml)
+![Node 20+](https://img.shields.io/badge/node-20%2B-339933)
+![MCP](https://img.shields.io/badge/MCP-server-6E56CF)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+
+</div>
+
+---
+
+## The problem
+
+You ask an AI to review the code an AI just wrote, and two things go wrong.
+
+1. **It shares the author's blind spots.** Ask the same model to "review carefully" and it
+   tends to defend its own choices. The bug it didn't see while writing, it doesn't see
+   while reviewing either.
+2. **It invents findings.** A reviewer model will tell you, in confident prose, about a
+   race condition on line 84, and line 84 is a comment. You lose a turn chasing it, or
+   worse, you "fix" working code.
+
+## What Gauntlet does
+
+Claude keeps writing the code and stays the only one that touches your files. When a
+change matters, Claude sends a small, focused packet to a model from **another family**
+and gets back a structured review. **Before Claude reads that review, each finding's
+quoted line is looked up in the real file.**
+
+Here is real output from Gauntlet reviewing its own JSON parser. Two families were
+asked; one approved, and the other found two real bugs, both quoted from the file:
+
+```text
+# Council (review): 2/2 voices answered
+
+## Verdicts
+- codex (gpt-5.6-terra): approve, confidence high
+- gemini (gemini-3.8-flash-high): approve_with_changes, confidence high
+
+Disagreement: approve vs approve_with_changes. Resolve it with evidence, not by averaging.
+
+## gemini
+[gemini / gemini-3.8-flash-high, advisory and read-only: tier standard, 108.4s,
+ 2/2 claims verified against the files]
+
+## Findings verified against the files (2)
+1. [medium] src/json.mjs:32: extractJson aborts on the first unclosed opening brace,
+   failing to extract subsequent valid JSON objects.
+   Fix: Replace `break;` with `continue;` ...
+2. [low] src/json.mjs:28: extractJson returns arrays when the input is a standalone
+   JSON array ...
 ```
-you ──► Claude Code (writes the code)
-             │  "review this diff"           ▲  verdict + findings,
-             ▼                               │  each one checked against the file
-        tandem MCP server ──► Codex CLI / Antigravity CLI (read-only sandbox)
+
+Both were fixed in the next commit. A finding whose quote *isn't* in the file lands in a
+separate section, **"could not be confirmed"**, so you can tell real findings from
+invented ones at a glance.
+
+## Why it works
+
+**Different families, not different prompts.** OpenAI, Google and open-weight models are
+trained differently and fail differently. Gauntlet's `council` asks up to three of them at
+once and tells you which findings **two families reached independently**: the strongest
+signal you can get short of a human reviewer.
+
+**Receipts or it didn't happen.** Every finding must quote its line verbatim. Gauntlet
+looks for the quote within a few lines of where the model says it is, then in the whole
+file. "Verified", "not checkable" and "could not be confirmed" are separate sections, and
+the check costs nothing because no model is involved.
+
+**Your Claude quota stays with Claude.** Reviews run on your ChatGPT and Google plans, on
+packets of a few thousand characters instead of your whole conversation, at the cheapest
+tier that can do the job, and they're cached on unchanged code. See
+[how the savings work and how to measure them](docs/token-savings.md).
+
+**It doesn't get stuck.** When a model is out of quota, the call moves along a chain: a
+smaller model of the same family, then another family, then Claude through Antigravity.
+The failing model is paused so the next call skips it at once. We tested it by breaking
+Codex, then Codex and Gemini together: every review still came back, and still correct.
+
+**A pipeline you can change while it runs.** Six internal agents (comprehension,
+anti-hallucination, text review, jury, legal, learning) live in a versioned configuration.
+Publish a new version and every open Claude Code chat picks it up on its **next
+message**: no restart, no lost history. Roll back the same way.
+
+## What we measured
+
+On one developer machine (Windows 11, Codex CLI and Antigravity CLI on personal plans,
+October 2026). Your numbers will differ; `gauntlet stats` shows yours.
+
+| | |
+|---|---|
+| `quick_check` on a one-file question (Gemini, light tier) | 25 s; ~31k tokens on Google's side, none on Claude's for the review itself |
+| The same question again, file unchanged | 0.0 s, served from cache |
+| Two-family council on the same file | 108 s, found 2 real bugs that one family missed |
+| 44,500-character document through the text-review agent | 32 s, caught the typo in the last sentence |
+| Regression suite for the six internal agents | 5/5 on live models |
+| Codex unavailable / Codex and Gemini both unavailable | answered by Gemini / by Claude, still 5/5 |
+
+## Quick start
+
+You need Node 20+, [Claude Code](https://docs.claude.com/en/docs/claude-code), and at
+least one of:
+- the **Codex CLI**, signed in with ChatGPT (`codex login`);
+- the **Antigravity CLI** (`agy`), signed in with Google. This also gives you GPT-OSS
+  and the Claude fallback lane.
+
+```bash
+git clone https://github.com/Raffymimii/gauntlet.git
+cd gauntlet && npm install
+node bin/gauntlet.mjs init --dry-run    # shows every change it would make
+node bin/gauntlet.mjs init              # registers the MCP server and the subagents
+node bin/gauntlet.mjs status            # are the CLIs installed and signed in?
 ```
 
-## Why
+Open a **new** Claude Code chat and ask for a review: *"get a codex_review of this diff"*.
 
-- **Different models miss different things.** A reviewer from another family catches
-  what the author's own model would defend. The `council` tool asks three families at
-  once and tells you which findings two of them reached independently, which is the
-  strongest signal you can get without a human.
-- **Hallucinated findings get caught mechanically.** Specialists must quote the exact
-  line they're talking about. tandem looks for that quote in the file, so a confident
-  finding about code that doesn't exist shows up under "could not be confirmed" instead
-  of sending Claude on a wild goose chase.
-- **It spends your Claude quota where it matters.** See [docs/token-savings.md](docs/token-savings.md).
-  Reviews, diagnoses and edge-case hunting run on your ChatGPT and Google plans, with
-  small packets instead of your whole conversation, at the cheapest tier that can do the
-  job, and cached on unchanged code.
-- **It doesn't fall over.** When a model is out of quota, the call moves to the next one:
-  a smaller model of the same family, then another family, then Claude through
-  Antigravity. The failing model is paused for a while so later calls skip it at once.
-- **No API keys, no extra bills.** It drives the official CLIs on your existing logins.
+Optional extras:
 
-## What you get
+```bash
+node bin/gauntlet.mjs init --claude-md            # teach Claude when to use which tool
+node bin/gauntlet.mjs init --hooks turn           # live runtime + internal agents
+node bin/gauntlet.mjs init --hooks review-gate    # no git push while edits are unreviewed
+node bin/gauntlet.mjs uninstall                   # removes exactly what it added
+```
 
-**MCP tools** (all read-only):
+## The tools
 
-| Tool | Default model | Use it for |
+| Tool | Who answers | Use it for |
 |---|---|---|
 | `quick_check` | Gemini, light | a fast look at a function, regex, query or config |
-| `codex_review` | Codex, auto | adversarial review of a diff or a few files |
-| `gemini_review` | Gemini, auto | second review: contracts, error paths, state, UX |
-| `codex_diagnose` | Codex, standard | root cause of a bug or failing test |
-| `gemini_analyze` | Gemini, standard | how unfamiliar code fits together |
-| `plan_critique` | Codex, standard | a plan, before any code is written |
-| `security_audit` | Codex, deep | exploitable issues |
-| `edge_cases` | Gemini, standard | inputs the code mishandles, as test cases |
-| `council` | Codex + Gemini + GPT-OSS | the same question to three families, merged |
-| `tandem_status` | none | what's installed, signed in, paused |
+| `codex_review` | Codex, auto tier | adversarial review of a diff or a few files |
+| `gemini_review` | Gemini, auto tier | contracts, error paths, state, UX regressions |
+| `codex_diagnose` | Codex | root cause of a bug, from symptom to line |
+| `gemini_analyze` | Gemini | how unfamiliar code fits together |
+| `plan_critique` | Codex | a plan, *before* any code is written |
+| `security_audit` | Codex, deep tier | exploitable issues, with the attack spelled out |
+| `edge_cases` | Gemini | inputs the code mishandles, written as test cases |
+| `council` | Codex + Gemini + GPT-OSS | one question, three families, agreement and disagreement |
+| `gauntlet_status` | none | what's installed, signed in, paused, and why |
 
-**Subagents** for Claude Code: `haiku-navigator` (find things), `sonnet-reviewer` (review
-when other providers are down), `sonnet-test-analyst` (run and read tests; opt-in),
-`opus-architect` (plan big changes). All are read-only, enforced by a guard hook.
+There are also four read-only Claude subagents:
+- `haiku-navigator` finds things;
+- `sonnet-reviewer` reviews when every other provider is down;
+- `opus-architect` plans large changes;
+- `sonnet-test-analyst` runs your tests (opt-in).
 
-**Optional hooks:**
+## How it works
 
-- `turn` runs before each message. It loads a versioned runtime configuration and, for
-  long multi-part requests, a comprehension pass. See [Runtime](#runtime).
-- `review-gate` blocks `git push` and deploy commands while edited code has had no
-  outside review. Append `# review-skip: <reason>` to the command for trivial changes.
-
-**Internal agents** (comprehension, anti-hallucination, text review, jury, legal,
-learning). Claude runs them through `tandem agent` when a turn needs them.
-
-## Requirements
-
-- Node.js 20 or newer
-- [Claude Code](https://docs.claude.com/en/docs/claude-code)
-- At least one of:
-  - **Codex CLI**, signed in with a ChatGPT plan (`codex login`)
-  - **Antigravity CLI** (`agy`), signed in with a Google account that has Gemini
-    access. This also serves GPT-OSS and the Claude fallback lane.
-
-With only one of them installed, tandem uses that one. With neither, you still get the
-Claude subagents.
-
-## Install
-
-```bash
-git clone https://github.com/<you>/claude-tandem.git
-cd claude-tandem
-npm install
-node bin/tandem.mjs init --dry-run      # see what it would change
-node bin/tandem.mjs init                # MCP server + subagents
-node bin/tandem.mjs status              # check providers and logins
+```
+Claude Code ──tool call──► gauntlet MCP server
+                              │ build a packet: objective, named files, diff, checks
+                              │   (credentials refused, secrets redacted, never the chat)
+                              │ pick a tier, walk the fallback chain, skip paused models
+                              ▼
+                 codex exec --sandbox read-only    agy --mode plan --sandbox
+                              │
+                              ▼ structured JSON answer
+                 look up every quoted line in the real file
+                 remember findings per project ("seen before, 12 days ago")
+                 cache on the exact file contents
+                              │
+Claude Code ◄──── verified / not checkable / could not be confirmed
 ```
 
-By default `init` registers the MCP server (through `claude mcp add`) and installs the
-subagents. You can also opt in to these:
+More detail: [architecture](docs/architecture.md), [security model](docs/security.md),
+[configuration](docs/configuration.md).
 
-```bash
-node bin/tandem.mjs init --claude-md            # add the working rules to ~/.claude/CLAUDE.md
-node bin/tandem.mjs init --hooks turn,review-gate
-node bin/tandem.mjs init --test-analyst         # the subagent that runs your tests (runs project code)
-```
+## Safety
 
-Before writing `~/.claude/settings.json`, `init` makes a backup. Every entry it adds is
-tagged, so `tandem uninstall` removes exactly those entries and nothing else.
+- **Read-only, by construction.** Codex runs in its read-only sandbox, Antigravity in plan
+  mode, both with a hard timeout and a scrubbed environment. A specialist can't call
+  another specialist.
+- **What leaves your machine is what you name.** It never sends:
+  - the conversation;
+  - `.env` files, keys, or anything under `.ssh` or `.aws`;
+  - symlinks leading outside the project;
+  - binaries.
 
-**Open a new Claude Code chat afterwards.** MCP servers and CLAUDE.md are read when a
-chat starts.
+  `gauntlet packet` prints the exact packet without sending it.
+- **The installer changes nothing you didn't ask for.** Hooks are opt-in, `settings.json`
+  is backed up first, and `uninstall` removes only its own entries.
 
-To use `tandem` as a plain command, run `npm link` in the folder. The examples here use
-`node bin/tandem.mjs` so they work either way.
+## FAQ
 
-## Runtime
+**Does it use API keys or bill me per token?**
+No. It drives the official CLIs on your existing logins.
 
-The six internal agents, the routing thresholds and the policy Claude follows live in a
-**versioned runtime configuration** under `~/.tandem/runtime/versions/`. Because the
-`turn` hook reads it on every message, a version you publish applies to chats that are
-already open, from their next message, without restarting them or losing history.
+**Do I need both Codex and Antigravity?**
+No. With one, Gauntlet uses that one. With neither, you still get the Claude subagents.
 
-```bash
-tandem runtime export > my.json        # current config
-# edit my.json: a prompt, a threshold, disable an agent...
-tandem runtime publish my.json --reason "stricter text review"
-tandem runtime list
-tandem runtime rollback 3              # republishes v3 as a new version
-tandem regress                         # run the regression cases against real models
-```
+**Can a reviewer change my code?**
+No. Specialists are read-only, and Claude decides what to apply.
 
-When you tell Claude it got something wrong, the hook opens a **learning event**. The
-learning agent proposes fixes: lessons for an agent's prompt, new regression cases,
-routing changes. Only regression cases that pass strict validation are applied
-automatically, because adding a check can't change behaviour. Lessons and prompt changes
-wait for you: `tandem runtime proposals`, then `apply <id>` or `reject <id>`. No model is
-ever fine-tuned; "learning" means versioned configuration you can read, diff and roll
-back.
+**Is it allowed by my providers' terms?**
+Gauntlet runs the official tools, under your own account, at your own pace. It backs off
+when a provider says you're out of quota. Check your plans' terms for your use; that part
+is between you and them.
 
-## Privacy and security
+**Why not just ask Claude to review its own work?**
+You can, and sometimes you should. But a second family catches different things, and a
+reviewer whose findings are checked against the file can't waste your afternoon with a
+bug that isn't there.
 
-- A specialist gets a **packet**: objective, constraints, the files you name, the diff,
-  the checks. It never gets the conversation. Run `tandem packet` to see exactly what
-  would be sent.
-- These are never sent:
-  - credential files (`.env*`, keys, `.ssh`, `.aws`, ...);
-  - symlinks that lead outside the project;
-  - binaries;
-  - anything outside the project.
+## Contributing
 
-  Token-shaped strings are redacted from what does go.
-- Provider CLIs run read-only (`codex exec --sandbox read-only`, `agy --mode plan
-  --sandbox`), in your project directory, with a scrubbed environment and a hard
-  timeout.
-- A specialist can't call further specialists.
-- What goes to OpenAI or Google is governed by **your** agreement with them. With
-  `fallback.crossFamily` on (the default), a call can move from one provider to the
-  other when the first is unavailable. Turn it off, or turn off a lane, in
-  `~/.tandem/config.json`.
-- Local data (event log, cache, findings memory, runtime versions) stays in
-  `~/.tandem`. Nothing is sent anywhere else.
-
-More in [docs/security.md](docs/security.md).
-
-## Configuration
-
-`~/.tandem/config.json` overrides [config/default.json](config/default.json):
-- model names per tier;
-- which lanes are on;
-- limits;
-- cache.
-
-Model names change often, so this is the file to edit when a provider renames one. See
-[docs/configuration.md](docs/configuration.md).
-
-## Docs
-
-- [How it works](docs/architecture.md)
-- [Token savings: what they are and how to measure them](docs/token-savings.md)
-- [Security model](docs/security.md)
-- [Configuration](docs/configuration.md)
-
-## Using it with your providers' terms
-
-tandem automates the official command-line tools under your own accounts. Check that the
-way you use them fits the terms of your plans with OpenAI and Google. tandem doesn't share
-accounts, bypass limits or resell access, and it backs off when a provider says you're out
-of quota.
+Issues and pull requests are welcome. If you change a prompt, run the agent regression
+suite (`node bin/gauntlet.mjs regress`) and include the result. If you have measured the
+savings on real work, please share the numbers and the method.
 
 ## License
 

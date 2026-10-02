@@ -136,11 +136,11 @@ function failureText(lane, kind, err) {
   const text = {
     timeout: `${lane} ran out of time and was stopped. Narrow the packet, use a lighter tier, or continue without this opinion.`,
     quota: `${lane} and its fallbacks are out of subscription quota right now. Continue without this opinion, or use the sonnet-reviewer subagent.`,
-    auth: `${lane} is not signed in. Run tandem_status, ask the user to sign in, and continue without it meanwhile.`,
+    auth: `${lane} is not signed in. Run gauntlet_status, ask the user to sign in, and continue without it meanwhile.`,
     spawn_failed: `${lane} could not be started (${err.message}). Continue without it.`,
-    disabled: 'No model is enabled for this call in the tandem config.',
+    disabled: 'No model is enabled for this call in the gauntlet config.',
     empty_response: `${lane} returned no usable answer. Continue without it.`,
-    model_unavailable: `${lane}: the configured model is not available to this CLI. Update the tier table in ~/.tandem/config.json.`,
+    model_unavailable: `${lane}: the configured model is not available to this CLI. Update the tier table in ~/.gauntlet/config.json.`,
     provider_error: `${lane} failed: ${err.message}.`,
   }[kind] || `${lane} failed unexpectedly: ${err.message}.`;
   return `${text} Nothing was written.${tail}`;

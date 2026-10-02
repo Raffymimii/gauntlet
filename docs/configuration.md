@@ -30,7 +30,7 @@ what you change:
 | `cache.enabled`, `cache.ttlMs` | result cache |
 | `events.enabled` | local metadata log used by `gauntlet stats` |
 
-If the file isn't valid JSON, gauntlet uses the defaults and `gauntlet status` says why.
+If the file isn't valid JSON, Gauntlet uses the defaults and `gauntlet status` says why.
 
 `GAUNTLET_HOME` moves the whole data directory, which is handy for tests or for keeping
 two setups apart.

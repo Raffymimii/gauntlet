@@ -1,39 +1,39 @@
 # Token savings
 
-The honest version: gauntlet doesn't make the total number of tokens in the world go down.
-A second review costs tokens. What it changes is **where** they are spent and **how many
-of them are spent on the expensive context**.
+Gauntlet doesn't make reviews free. A second opinion costs tokens like anything else. What
+changes is where they're spent: on your ChatGPT or Google plan instead of your Claude one,
+and on a small packet instead of your whole conversation.
 
 ## Where the savings come from
 
-**1. Small packets instead of the whole conversation.**
+### 1. Small packets instead of the whole conversation
 A Claude Code session easily carries 100k+ tokens of context: the conversation, file
 reads, tool output. Asking Claude itself to "now review this carefully" re-reads that
-context. A gauntlet specialist gets a packet with the objective, the files named, the diff
+context. A Gauntlet specialist gets a packet with the objective, the files named, the diff
 and the checks. That is usually a few thousand characters (`gauntlet stats` shows your
 average), plus the provider CLI's own system prompt.
 
-**2. The work runs on other plans.**
+### 2. The work runs on other plans
 Reviews, diagnoses and edge-case hunting run on your ChatGPT plan (Codex) or your Google
 plan (Antigravity). That is quota you already pay for and would otherwise leave unused.
 Your Claude plan is kept for the work only Claude is doing: understanding your
 request, editing, deciding.
 
-**3. The cheapest model that can do the job.**
+### 3. The cheapest model that can do the job
 Every call runs at a tier. `quick_check` defaults to `light`. `auto` sends small,
 ordinary questions to light models and keeps the flagship models for security, money,
 concurrency and production. A three-word question never needs the biggest model.
 
-**4. No agent on trivial turns.**
+### 4. No agent on trivial turns
 The `turn` hook routes cheaply without calling a model. Short messages get nothing. The
 comprehension pass runs only on long or multi-part requests.
 
-**5. A cache keyed on your actual code.**
+### 5. A cache keyed on your actual code
 A repeated question about unchanged files is answered from the cache in milliseconds.
 The cache key includes a hash of every file in the packet, so changing a file
 invalidates it.
 
-**6. Fewer wasted turns (harder to measure).**
+### 6. Fewer wasted turns (harder to measure)
 A finding that points at code that doesn't exist is marked as such before Claude reads
 it, so Claude doesn't spend turns chasing it. A bug caught in review costs less than the
 same bug found by three rounds of debugging. This is plausible, not measured: treat it as
@@ -62,11 +62,11 @@ To compare against a baseline:
 
 1. Pick a fixed set of tasks from your own work (say 10 changes: a few small, a few
    risky).
-2. Do them once with gauntlet installed and once without, in fresh chats, with the same
+2. Do them once with Gauntlet installed and once without, in fresh chats, with the same
    instructions.
 3. For each run, record what Claude Code reports for the session (`/cost` or your plan's
-   usage page), and `gauntlet stats --days 1` for the gauntlet side.
+   usage page), and `gauntlet stats --days 1` for the Gauntlet side.
 4. Compare Claude usage per task, total wall time, and defects found later.
 
-Publish your numbers with the method if you share them. We would rather show a measured
-10% than claim an unmeasured 80%.
+If you share numbers, share the method with them. A small saving that someone actually
+measured is worth more than a big one that nobody did.

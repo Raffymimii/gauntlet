@@ -2,12 +2,11 @@
 
 # Gauntlet
 
-**Make Claude's code run the gauntlet.**
+Make Claude's code run the gauntlet.
 
-Codex, Gemini and GPT-OSS review what Claude Code writes, and every finding has to quote
-the line it's about. Gauntlet checks those quotes against your files before Claude reads a word.
-
-It uses the ChatGPT and Google subscriptions you already have. No API keys, no extra bill.
+Codex, Gemini and GPT-OSS review what Claude Code writes. Every finding has to quote the
+line it's about, and Gauntlet checks that quote against your files before Claude reads it.
+It runs on the ChatGPT and Google plans you already pay for. No API keys.
 
 [![CI](https://github.com/Raffymimii/gauntlet/actions/workflows/ci.yml/badge.svg)](https://github.com/Raffymimii/gauntlet/actions/workflows/ci.yml)
 ![Node 20+](https://img.shields.io/badge/node-20%2B-339933)
@@ -18,26 +17,27 @@ It uses the ChatGPT and Google subscriptions you already have. No API keys, no e
 
 ---
 
-## The problem
+## Why I built this
 
-You ask an AI to review the code an AI just wrote, and two things go wrong.
+I do most of my coding with Claude Code, and I kept hitting the same two walls.
 
-1. **It shares the author's blind spots.** Ask the same model to "review carefully" and it
-   tends to defend its own choices. The bug it didn't see while writing, it doesn't see
-   while reviewing either.
-2. **It invents findings.** A reviewer model will tell you, in confident prose, about a
-   race condition on line 84, and line 84 is a comment. You lose a turn chasing it, or
-   worse, you "fix" working code.
+The first: asking Claude to review its own code mostly gets you Claude agreeing with
+itself. The bug it didn't see while writing, it doesn't see while reviewing.
 
-## What Gauntlet does
+The second came when I started asking other models instead. They found real bugs, and
+they also made some up. A confident paragraph about a race condition on line 84, and line
+84 is a comment. I'd lose half an hour finding that out.
 
-Claude keeps writing the code and stays the only one that touches your files. When a
-change matters, Claude sends a small, focused packet to a model from **another family**
-and gets back a structured review. **Before Claude reads that review, each finding's
-quoted line is looked up in the real file.**
+Gauntlet is what I ended up with. Claude still writes the code and is still the only thing
+allowed to touch my files. When a change matters, it sends a small packet (the objective,
+the files, the diff) to a model from a different family and gets a structured review back.
+Before Claude sees that review, Gauntlet looks up every quoted line in the real file and
+sorts the findings into three groups:
+- verified;
+- nothing to check against a file;
+- "could not be confirmed", meaning the quoted code isn't there.
 
-Here is real output from Gauntlet reviewing its own JSON parser. Two families were
-asked; one approved, and the other found two real bugs, both quoted from the file:
+Here's a real run, Gauntlet reviewing its own JSON parser with two families:
 
 ```text
 # Council (review): 2/2 voices answered
@@ -60,161 +60,185 @@ Disagreement: approve vs approve_with_changes. Resolve it with evidence, not by 
    JSON array ...
 ```
 
-Both were fixed in the next commit. A finding whose quote *isn't* in the file lands in a
-separate section, **"could not be confirmed"**, so you can tell real findings from
-invented ones at a glance.
+Codex approved the file. Gemini found two real bugs, both quoted from the source, and both
+got fixed in the next commit. That's the whole idea in one screen.
 
-## Why it works
+## What's in it
 
-**Different families, not different prompts.** OpenAI, Google and open-weight models are
-trained differently and fail differently. Gauntlet's `council` asks up to three of them at
-once and tells you which findings **two families reached independently**: the strongest
-signal you can get short of a human reviewer.
+- An MCP server with ten tools: reviews, a diagnosis tool, plan critique, a security
+  audit, edge cases, and `council`, which asks Codex, Gemini and GPT-OSS the same question
+  at once and tells you where they agree. Findings that two families reached on their own
+  are the ones I trust most.
+- A fallback chain, because quotas run out. If the flagship model is rate-limited, the
+  call goes to the smaller model of the same family, then to another family, then to
+  Claude through Antigravity. A model that just failed sits out for a while, so the next
+  call doesn't wait on it again.
+- Four read-only Claude subagents (`haiku-navigator`, `sonnet-reviewer`, `opus-architect`,
+  and `sonnet-test-analyst`, which is opt-in) for when you'd rather stay in the Claude
+  family.
+- Optional hooks:
+  - a pre-turn hook that runs a small pipeline of internal agents (comprehension,
+    anti-hallucination, text review, jury, legal, learning);
+  - a gate that refuses `git push` while edited code hasn't had a review.
 
-**Receipts or it didn't happen.** Every finding must quote its line verbatim. Gauntlet
-looks for the quote within a few lines of where the model says it is, then in the whole
-file. "Verified", "not checkable" and "could not be confirmed" are separate sections, and
-the check costs nothing because no model is involved.
+The pipeline config is versioned. Publish a new version and chats that are already open
+pick it up on their next message, without a restart. It's the part I'm proudest of,
+and the one I'd point a curious engineer at first. See
+[architecture](docs/architecture.md).
 
-**Your Claude quota stays with Claude.** Reviews run on your ChatGPT and Google plans, on
-packets of a few thousand characters instead of your whole conversation, at the cheapest
-tier that can do the job, and they're cached on unchanged code. See
-[how the savings work and how to measure them](docs/token-savings.md).
+## Numbers
 
-**It doesn't get stuck.** When a model is out of quota, the call moves along a chain: a
-smaller model of the same family, then another family, then Claude through Antigravity.
-The failing model is paused so the next call skips it at once. We tested it by breaking
-Codex, then Codex and Gemini together: every review still came back, and still correct.
+These are from my machine (Windows 11, personal ChatGPT and Google plans, October 2026),
+so take them as one data point. `gauntlet stats` will give you yours.
 
-**A pipeline you can change while it runs.** Six internal agents (comprehension,
-anti-hallucination, text review, jury, legal, learning) live in a versioned configuration.
-Publish a new version and every open Claude Code chat picks it up on its **next
-message**: no restart, no lost history. Roll back the same way.
-
-## What we measured
-
-On one developer machine (Windows 11, Codex CLI and Antigravity CLI on personal plans,
-October 2026). Your numbers will differ; `gauntlet stats` shows yours.
-
-| | |
+| What | Result |
 |---|---|
-| `quick_check` on a one-file question (Gemini, light tier) | 25 s; ~31k tokens on Google's side, none on Claude's for the review itself |
-| The same question again, file unchanged | 0.0 s, served from cache |
-| Two-family council on the same file | 108 s, found 2 real bugs that one family missed |
-| 44,500-character document through the text-review agent | 32 s, caught the typo in the last sentence |
+| `quick_check` on a one-file question (Gemini, light tier) | 25 s; about 31k tokens on Google's side, none on Claude's for the review itself |
+| Same question again, file unchanged | answered from cache in 0.0 s |
+| Two-family council on that file | 108 s; two real bugs that one family missed |
+| A 44,500-character document through the text-review agent | 32 s; it caught the typo in the last sentence |
 | Regression suite for the six internal agents | 5/5 on live models |
-| Codex unavailable / Codex and Gemini both unavailable | answered by Gemini / by Claude, still 5/5 |
+| Same suite with Codex broken, then Codex and Gemini both broken | 5/5, answered by Gemini, then by Claude |
 
-## Quick start
+A word on tokens. Gauntlet doesn't make reviews free. It moves them off your Claude plan and
+keeps the packets small. [docs/token-savings.md](docs/token-savings.md) explains where the
+savings come from and how to measure them on your own work. I'd rather you measure than
+take my word for it.
 
-You need Node 20+, [Claude Code](https://docs.claude.com/en/docs/claude-code), and at
-least one of:
-- the **Codex CLI**, signed in with ChatGPT (`codex login`);
-- the **Antigravity CLI** (`agy`), signed in with Google. This also gives you GPT-OSS
-  and the Claude fallback lane.
+## Installing
+
+### 1. What you need
+
+- Node.js 20 or newer (`node --version`).
+- [Claude Code](https://docs.claude.com/en/docs/claude-code), with the `claude` command
+  working in your terminal.
+- At least one of the two provider CLIs below. You don't need both; Gauntlet uses
+  whatever is installed.
+
+### 2. The provider CLIs
+
+Codex, using your ChatGPT plan:
+
+```bash
+npm install -g @openai/codex
+codex login        # sign in with your ChatGPT account
+```
+
+Antigravity, using your Google account. This is the one that gives you Gemini, GPT-OSS
+and the Claude fallback lane. Install Google's Antigravity CLI (`agy`) by following
+Google's instructions for your OS, then run it once so it can sign you in:
+
+```bash
+agy
+```
+
+### 3. Gauntlet itself
 
 ```bash
 git clone https://github.com/Raffymimii/gauntlet.git
-cd gauntlet && npm install
-node bin/gauntlet.mjs init --dry-run    # shows every change it would make
-node bin/gauntlet.mjs init              # registers the MCP server and the subagents
-node bin/gauntlet.mjs status            # are the CLIs installed and signed in?
+cd gauntlet
+npm install
+node bin/gauntlet.mjs init --dry-run    # prints every change, touches nothing
+node bin/gauntlet.mjs init
 ```
 
-Open a **new** Claude Code chat and ask for a review: *"get a codex_review of this diff"*.
+What `init` does by default:
+- registers the MCP server with `claude mcp add --scope user gauntlet ...`;
+- copies the read-only subagents into `~/.claude/agents`.
 
-Optional extras:
+Without a flag it doesn't touch your `settings.json` or your `CLAUDE.md`. These are the
+opt-ins:
 
 ```bash
-node bin/gauntlet.mjs init --claude-md            # teach Claude when to use which tool
-node bin/gauntlet.mjs init --hooks turn           # live runtime + internal agents
-node bin/gauntlet.mjs init --hooks review-gate    # no git push while edits are unreviewed
-node bin/gauntlet.mjs uninstall                   # removes exactly what it added
+node bin/gauntlet.mjs init --claude-md        # adds one @-include line to ~/.claude/CLAUDE.md
+node bin/gauntlet.mjs init --hooks turn       # pre-turn hook: live config + internal agents
+node bin/gauntlet.mjs init --hooks review-gate
+node bin/gauntlet.mjs init --test-analyst     # the subagent that runs your tests
 ```
 
-## The tools
+I'd recommend `--claude-md`. It's the file that tells Claude when a quick check is enough
+and when to call the council. Without it, Claude only uses the tools when you ask.
 
-| Tool | Who answers | Use it for |
-|---|---|---|
-| `quick_check` | Gemini, light | a fast look at a function, regex, query or config |
-| `codex_review` | Codex, auto tier | adversarial review of a diff or a few files |
-| `gemini_review` | Gemini, auto tier | contracts, error paths, state, UX regressions |
-| `codex_diagnose` | Codex | root cause of a bug, from symptom to line |
-| `gemini_analyze` | Gemini | how unfamiliar code fits together |
-| `plan_critique` | Codex | a plan, *before* any code is written |
-| `security_audit` | Codex, deep tier | exploitable issues, with the attack spelled out |
-| `edge_cases` | Gemini | inputs the code mishandles, written as test cases |
-| `council` | Codex + Gemini + GPT-OSS | one question, three families, agreement and disagreement |
-| `gauntlet_status` | none | what's installed, signed in, paused, and why |
+If you want a plain `gauntlet` command instead of `node bin/gauntlet.mjs`, run `npm link`
+inside the folder.
 
-There are also four read-only Claude subagents:
-- `haiku-navigator` finds things;
-- `sonnet-reviewer` reviews when every other provider is down;
-- `opus-architect` plans large changes;
-- `sonnet-test-analyst` runs your tests (opt-in).
+### 4. Check it
 
-## How it works
-
-```
-Claude Code ──tool call──► gauntlet MCP server
-                              │ build a packet: objective, named files, diff, checks
-                              │   (credentials refused, secrets redacted, never the chat)
-                              │ pick a tier, walk the fallback chain, skip paused models
-                              ▼
-                 codex exec --sandbox read-only    agy --mode plan --sandbox
-                              │
-                              ▼ structured JSON answer
-                 look up every quoted line in the real file
-                 remember findings per project ("seen before, 12 days ago")
-                 cache on the exact file contents
-                              │
-Claude Code ◄──── verified / not checkable / could not be confirmed
+```bash
+node bin/gauntlet.mjs status
 ```
 
-More detail: [architecture](docs/architecture.md), [security model](docs/security.md),
-[configuration](docs/configuration.md).
+You should see your CLIs as installed and signed in, the model for each tier, and no
+paused models. Then **open a new Claude Code chat** (MCP servers are only loaded when a chat
+starts) and try:
+
+> get a quick_check of src/whatever.ts: is the retry loop bounded?
+
+> run a council on this diff before I push it
+
+### 5. Removing it
+
+```bash
+node bin/gauntlet.mjs uninstall
+```
+
+This removes the MCP server, the subagents it installed, its hook entries and its
+`CLAUDE.md` line, and nothing else. Your data in `~/.gauntlet` stays until you delete it.
+
+## When something doesn't work
+
+| Symptom | Likely cause |
+|---|---|
+| Claude doesn't see the `gauntlet` tools | You're in a chat opened before `init`. Open a new one. `claude mcp list` should show `gauntlet`. |
+| `status` says a CLI is not signed in | Run `codex login`, or run `agy` once interactively. |
+| "model not available" errors | Providers rename models. Put the current names in `~/.gauntlet/config.json` (see [configuration](docs/configuration.md)). |
+| A review times out | The packet is too big, or the tier too high. Name fewer files, or ask for `tier: "light"`. |
+| A model is "paused" | It failed on quota or login recently. It comes back by itself. `status` shows how long. |
+| `agy` isn't found by the MCP server | Set `providers.antigravity.command` to the full path of the executable. |
 
 ## Safety
 
-- **Read-only, by construction.** Codex runs in its read-only sandbox, Antigravity in plan
-  mode, both with a hard timeout and a scrubbed environment. A specialist can't call
-  another specialist.
-- **What leaves your machine is what you name.** It never sends:
-  - the conversation;
-  - `.env` files, keys, or anything under `.ssh` or `.aws`;
-  - symlinks leading outside the project;
-  - binaries.
+The reviewers are read-only:
+- Codex runs in its read-only sandbox, and Antigravity in plan mode with its sandbox on;
+- both have a hard timeout and a scrubbed environment;
+- the prompt goes in on stdin, never on the command line;
+- a reviewer can't call another reviewer.
 
-  `gauntlet packet` prints the exact packet without sending it.
-- **The installer changes nothing you didn't ask for.** Hooks are opt-in, `settings.json`
-  is backed up first, and `uninstall` removes only its own entries.
+What leaves your machine is the packet, and only the files you name. Gauntlet refuses:
+- `.env` files and keys;
+- anything under `.ssh`, `.aws` or `.git`;
+- symlinks that lead outside the project;
+- binaries.
+
+It also redacts token-shaped strings. `gauntlet packet` shows you exactly what would be
+sent, without sending it.
+
+What you send to OpenAI or Google is covered by your own agreement with them, and checking
+that your use fits your plans' terms is on you. Gauntlet uses the official CLIs under
+your account and backs off when a provider says you're out of quota.
+
+The full picture is in [docs/security.md](docs/security.md), including what it doesn't
+protect against.
 
 ## FAQ
 
-**Does it use API keys or bill me per token?**
-No. It drives the official CLIs on your existing logins.
+**Does it cost anything per token?** No. It uses your existing logins through the
+official CLIs.
 
-**Do I need both Codex and Antigravity?**
-No. With one, Gauntlet uses that one. With neither, you still get the Claude subagents.
+**Can a reviewer change my code?** No. Reviewers only answer; Claude decides what to apply.
 
-**Can a reviewer change my code?**
-No. Specialists are read-only, and Claude decides what to apply.
+**Why not just ask Claude to review its own work?** Sometimes that's fine. But another
+family catches different things. And a reviewer whose quotes get checked against the file
+can't send you after a bug that doesn't exist.
 
-**Is it allowed by my providers' terms?**
-Gauntlet runs the official tools, under your own account, at your own pace. It backs off
-when a provider says you're out of quota. Check your plans' terms for your use; that part
-is between you and them.
-
-**Why not just ask Claude to review its own work?**
-You can, and sometimes you should. But a second family catches different things, and a
-reviewer whose findings are checked against the file can't waste your afternoon with a
-bug that isn't there.
+**Will this work with my model names?** The defaults are what I use. When yours differ,
+`~/.gauntlet/config.json` overrides any of them.
 
 ## Contributing
 
-Issues and pull requests are welcome. If you change a prompt, run the agent regression
-suite (`node bin/gauntlet.mjs regress`) and include the result. If you have measured the
-savings on real work, please share the numbers and the method.
+Issues and PRs welcome. If you touch a prompt in `prompts/`, run the agent regressions
+(`node bin/gauntlet.mjs regress`) and paste the result in the PR. If you measure the token
+savings on real work, I'd love to see the numbers, along with how you measured them.
 
 ## License
 

@@ -13,7 +13,7 @@ Nothing that changes your machine:
   - an output cap;
   - an environment stripped of anything that looks like a secret (`*KEY*`, `*TOKEN*`,
     `*SECRET*`, ...).
-- Every child gets `GAUNTLET_DEPTH=1`. A gauntlet server started inside a specialist refuses
+- Every child gets `GAUNTLET_DEPTH=1`. A Gauntlet server started inside a specialist refuses
   all calls, so specialists can't recurse.
 - The prompt goes in on stdin for both CLIs, never on a command line and never through a
   shell.
@@ -41,7 +41,7 @@ reviewed.
 ### Limits of this
 
 - The checks happen before the file is read. Someone who can write to your project while
-  gauntlet runs could swap a file for a link in between. gauntlet assumes the project
+  Gauntlet runs could swap a file for a link in between. Gauntlet assumes the project
   directory is yours.
 - Redaction is pattern-based. It hides key blocks, known token formats and
   `name = value` assignments whose name looks secret. It can't recognise a secret with
@@ -63,7 +63,7 @@ The guard is a pattern check, not a sandbox. `sonnet-test-analyst` exists to run
 tests and builds, and those run your project's own code, which can do anything that code
 does. Use that subagent only on projects you trust.
 
-## What gauntlet stores
+## What Gauntlet stores
 
 All local, under `~/.gauntlet`:
 - metadata events;
@@ -80,7 +80,7 @@ Delete the folder to remove all of it.
 - `init` changes nothing you didn't ask for. Hooks and CLAUDE.md are opt-in.
 - `settings.json` is backed up before every write, and a file that isn't valid JSON is
   never overwritten.
-- Entries are tagged, so `uninstall` removes only gauntlet's own.
+- Entries are tagged, so `uninstall` removes only Gauntlet's own.
 
 ## Reporting a vulnerability
 

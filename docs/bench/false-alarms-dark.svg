@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="356" viewBox="0 0 760 356" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-label="False alarms on 4 bug-free files">
+<title>False alarms on 4 bug-free files</title>
+<rect width="760" height="356" rx="8" fill="#1a1a19"/>
+<text x="20" y="30" font-size="16" font-weight="600" fill="#ffffff">False alarms on 4 bug-free files</text>
+<text x="20" y="52" font-size="12.5" fill="#c3c2b7">High or medium findings on code with nothing wrong in it, per run. Lower is better.</text>
+<text x="258" y="87" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">Claude Sonnet 5.5</text>
+<path d="M270,74 H472.3768115942029 Q476.3768115942029,74 476.3768115942029,78 V88 Q476.3768115942029,92 472.3768115942029,92 H270 Z" fill="#76756f"/>
+<text x="484.3768115942029" y="87" font-size="12.5" fill="#ffffff">2</text>
+<text x="258" y="123" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">Codex GPT-5.6 Terra</text>
+<path d="M270,110 H300.3961352657005 Q304.3961352657005,110 304.3961352657005,114 V124 Q304.3961352657005,128 300.3961352657005,128 H270 Z" fill="#76756f"/>
+<text x="312.3961352657005" y="123" font-size="12.5" fill="#ffffff">0.3</text>
+<text x="258" y="159" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">Gemini 3.8 Flash</text>
+<path d="M270,146 H334.79227053140096 Q338.79227053140096,146 338.79227053140096,150 V160 Q338.79227053140096,164 334.79227053140096,164 H270 Z" fill="#76756f"/>
+<text x="346.79227053140096" y="159" font-size="12.5" fill="#ffffff">0.7</text>
+<text x="258" y="195" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">GPT-OSS 120B</text>
+<path d="M270,182 H472.3768115942029 Q476.3768115942029,182 476.3768115942029,186 V196 Q476.3768115942029,200 472.3768115942029,200 H270 Z" fill="#76756f"/>
+<text x="484.3768115942029" y="195" font-size="12.5" fill="#ffffff">2</text>
+<text x="258" y="231" font-size="13" text-anchor="end" fill="#ffffff" font-weight="600">Gauntlet council, any family</text>
+<path d="M270,218 H575.5652173913044 Q579.5652173913044,218 579.5652173913044,222 V232 Q579.5652173913044,236 575.5652173913044,236 H270 Z" fill="#3987e5"/>
+<text x="587.5652173913044" y="231" font-size="12.5" fill="#ffffff">3</text>
+<text x="258" y="267" font-size="13" text-anchor="end" fill="#ffffff" font-weight="600">Gauntlet council, 2+ families agree</text>
+<path d="M270,254 H300.3961352657005 Q304.3961352657005,254 304.3961352657005,258 V268 Q304.3961352657005,272 300.3961352657005,272 H270 Z" fill="#3987e5"/>
+<text x="312.3961352657005" y="267" font-size="12.5" fill="#ffffff">0.3</text>
+<text x="258" y="303" font-size="13" text-anchor="end" fill="#ffffff" font-weight="600">Claude + Gauntlet council, 2+ of 4 agree</text>
+<path d="M270,290 H334.79227053140096 Q338.79227053140096,290 338.79227053140096,294 V304 Q338.79227053140096,308 334.79227053140096,308 H270 Z" fill="#3987e5"/>
+<text x="346.79227053140096" y="303" font-size="12.5" fill="#ffffff">0.7</text>
+</svg>

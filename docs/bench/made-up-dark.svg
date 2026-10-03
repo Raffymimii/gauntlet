@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="248" viewBox="0 0 760 248" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-label="Findings that quote code that is not in the file">
+<title>Findings that quote code that is not in the file</title>
+<rect width="760" height="248" rx="8" fill="#1a1a19"/>
+<text x="20" y="30" font-size="16" font-weight="600" fill="#ffffff">Findings that quote code that is not in the file</text>
+<text x="20" y="52" font-size="12.5" fill="#c3c2b7">Share of each model's findings. Gauntlet looks every quote up and labels these before Claude reads them.</text>
+<text x="258" y="87" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">Claude Sonnet 5.5</text>
+<path d="M270,74 H339.2510288065844 Q343.2510288065844,74 343.2510288065844,78 V88 Q343.2510288065844,92 339.2510288065844,92 H270 Z" fill="#76756f"/>
+<text x="351.2510288065844" y="87" font-size="12.5" fill="#ffffff">2%  (4 of 162)</text>
+<text x="258" y="123" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">Codex GPT-5.6 Terra</text>
+<path d="M270,110 H488.5 Q492.5,110 492.5,114 V124 Q492.5,128 488.5,128 H270 Z" fill="#76756f"/>
+<text x="500.5" y="123" font-size="12.5" fill="#ffffff">8%  (3 of 40)</text>
+<text x="258" y="159" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">Gemini 3.8 Flash</text>
+
+<text x="278" y="159" font-size="12.5" fill="#ffffff">0%  (0 of 51)</text>
+<text x="258" y="195" font-size="13" text-anchor="end" fill="#ffffff" font-weight="400">GPT-OSS 120B</text>
+<path d="M270,182 H394.9855072463768 Q398.9855072463768,182 398.9855072463768,186 V196 Q398.9855072463768,200 394.9855072463768,200 H270 Z" fill="#76756f"/>
+<text x="406.9855072463768" y="195" font-size="12.5" fill="#ffffff">4%  (3 of 69)</text>
+</svg>

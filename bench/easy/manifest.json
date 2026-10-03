@@ -1,0 +1,20 @@
+{
+  "objective": "Review this file for bugs. Report real defects only, most severe first.",
+  "samples": [
+    { "file": "pagination.js", "bug": "Off-by-one: the loop uses <= with an exclusive end, so every page gets one extra (or undefined) item.", "lines": [19], "keywords": ["<=", "off-by-one", "off by one", "one extra", "extra item", "undefined", "exclusive", "inclusive", "out of bounds", "beyond", "one more"] },
+    { "file": "fetch-user.js", "bug": "Missing await on fetch: res is a Promise, so res.ok is always undefined.", "lines": [13, 14, 15, 16], "keywords": ["await", "promise"] },
+    { "file": "orders.py", "bug": "SQL injection: the customer name is interpolated into the query with an f-string.", "lines": [21, 22], "keywords": ["injection", "parameteri", "f-string", "interpolat", "placeholder"] },
+    { "file": "pricing.js", "bug": "Units: percentOff is 0-100 but is used as a fraction, so a 10% discount makes the price negative.", "lines": [12, 13, 14, 15, 16], "keywords": ["percent", "/ 100", "/100", "fraction", "negative", "0-100", "0 to 100", "0..100"] },
+    { "file": "download.js", "bug": "Path traversal: name=../../etc/passwd escapes UPLOAD_DIR.", "lines": [16, 17, 18, 19, 20], "keywords": ["traversal", "../", "..", "escape", "outside", "arbitrary file"] },
+    { "file": "retry.py", "bug": "The give-up check is unreachable after continue, so a persistent TransientError retries forever.", "lines": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], "keywords": ["infinite", "unreachable", "never", "forever", "dead code", "give up", "gives up", "max_attempts"] },
+    { "file": "cache.ts", "bug": "Inverted expiry check: fresh entries are deleted and expired ones are returned.", "lines": [14, 15, 16], "keywords": ["expir", "invert", "revers", "fresh", "stale", "backward", "wrong direction", "opposite"] },
+    { "file": "zipcode.py", "bug": "re.match without an end anchor accepts '123456' or '12345abc'.", "lines": [4, 10], "keywords": ["anchor", "fullmatch", "$", "prefix", "123456", "longer", "trailing", "partial", "beginning"] },
+    { "file": "session.js", "bug": "jwt.decode does not verify the signature or expiry, so anyone can forge an admin token.", "lines": [14, 15, 16], "keywords": ["decode", "verify", "signature", "forg", "unsigned", "unverified"] },
+    { "file": "leaderboard.js", "bug": "Array.prototype.sort() without a comparator sorts numbers as strings (10 before 9).", "lines": [5, 6], "keywords": ["lexicograph", "string", "comparator", "numeric", "alphabetic"] },
+    { "file": "due-date.js", "bug": "new Date('YYYY-MM-DD') is UTC midnight but getDay/getDate read local time: off by a day west of UTC.", "lines": [5, 13, 20, 21, 22], "keywords": ["utc", "timezone", "time zone", "local time", "offset", "dst", "daylight"] },
+    { "file": "inventory.py", "bug": "average_stock divides by zero on an empty history.", "lines": [6], "keywords": ["zero", "empty", "zerodivision"] },
+    { "file": "slugify.js", "clean": true },
+    { "file": "chunk.py", "clean": true },
+    { "file": "debounce.ts", "clean": true }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "objective": "Review this code for bugs. Report real defects only, most severe first.",
+  "samples": [
+    { "id": "lru", "files": ["lru.js"], "bug": "get() never refreshes recency, so the cache evicts the entry that was just read: it behaves as FIFO, not LRU.", "at": [{ "file": "lru.js", "lines": [26, 27, 28, 29, 30, 31, 32, 33] }], "keywords": ["recen", "fifo", "lru", "move", "reorder", "re-insert", "reinsert", "most recently", "least recently", "eviction order"] },
+    { "id": "semaphore", "files": ["semaphore.js"], "bug": "A cache hit returns after acquire() without release(): every hit leaks a permit until all renders hang.", "at": [{ "file": "semaphore.js", "lines": [28, 29, 30, 31, 32] }], "keywords": ["release", "leak", "permit", "deadlock", "hang", "never released", "starv"] },
+    { "id": "billing", "files": ["billing/charge.js", "billing/gateway.js"], "bug": "charge.js passes cents as `amount`, gateway.js expects major units and multiplies by 100: every customer is charged 100 times the total.", "at": [{ "file": "billing/charge.js", "lines": [18] }, { "file": "billing/gateway.js", "lines": [10, 16, 24] }], "keywords": ["100", "cents", "major unit", "minor unit", "overcharg", "units"] },
+    { "id": "token-bucket", "files": ["token-bucket.js"], "bug": "elapsed is in milliseconds but the rate is per second: buckets refill 1000 times too fast and the limiter never limits.", "at": [{ "file": "token-bucket.js", "lines": [26, 27, 28] }], "keywords": ["millisecond", "1000", "per second", "units"] },
+    { "id": "emitter", "files": ["emitter.js"], "bug": "off() with an unregistered listener: indexOf returns -1 and splice(-1, 1) removes the last listener.", "at": [{ "file": "emitter.js", "lines": [27] }], "keywords": ["-1", "indexof", "last listener", "wrong listener", "not found"] },
+    { "id": "playlist", "files": ["playlist.py"], "bug": "Mutable default argument: every Playlist created without tracks shares one list.", "at": [{ "file": "playlist.py", "lines": [13, 17] }], "keywords": ["mutable default", "default argument", "shared", "same list"] },
+    { "id": "report", "files": ["report.py"], "bug": "The generator is exhausted by the count, so revenue is always 0.", "at": [{ "file": "report.py", "lines": [16, 17, 18, 19] }], "keywords": ["exhaust", "consumed", "generator", "iterat", "twice", "zero", "empty"] },
+    { "id": "http-timeout", "files": ["http/client.js", "http/config.js"], "bug": "config.timeout is in seconds, setTimeout takes milliseconds: every request is aborted after 30 ms.", "at": [{ "file": "http/client.js", "lines": [9] }, { "file": "http/config.js", "lines": [5, 6] }], "keywords": ["second", "millisecond", "1000", "units", "30 ms", "30ms"] },
+    { "id": "admin-route", "files": ["admin/app.js", "admin/auth.js"], "bug": "DELETE /admin/users/:id has no auth at all and is registered before app.use(requireUser): anyone can delete users.", "at": [{ "file": "admin/app.js", "lines": [15, 16, 17, 18, 20] }], "keywords": ["auth", "requireadmin", "unauthenticated", "unprotected", "anyone", "no check", "middleware order", "before"] },
+    { "id": "booking", "files": ["booking.js"], "bug": "Check-then-insert without a transaction or lock: concurrent bookings overbook the event.", "at": [{ "file": "booking.js", "lines": [18, 19, 20, 21, 22] }], "keywords": ["race", "concurren", "transaction", "atomic", "overbook", "lock", "toctou"] },
+    { "id": "signup", "files": ["signup.js"], "bug": "EMAIL_RE has a nested quantifier: crafted input causes catastrophic backtracking (ReDoS).", "at": [{ "file": "signup.js", "lines": [4, 12] }], "keywords": ["redos", "backtrack", "catastrophic", "exponential", "nested quantifier", "denial of service"] },
+    { "id": "versions", "files": ["versions.js"], "bug": "sort() compares version strings lexicographically: 1.9.0 is picked over 1.10.0.", "at": [{ "file": "versions.js", "lines": [19, 20] }], "keywords": ["lexicograph", "string", "1.10", "1.9", "numeric", "comparator", "semver"] },
+    { "id": "clean-split", "files": ["split_bill.py"], "clean": true },
+    { "id": "clean-keyset", "files": ["keyset.py"], "clean": true },
+    { "id": "clean-backoff", "files": ["backoff.js"], "clean": true },
+    { "id": "clean-slug", "files": ["slug.js"], "clean": true }
+  ]
+}

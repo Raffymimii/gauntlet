@@ -1,0 +1,308 @@
+{
+ "set": "main",
+ "source": "raw-2026-10-03T13-01-34-519Z.json, raw-2026-10-03T13-30-09-576Z.json, raw-2026-10-03T14-04-52-085Z.json",
+ "startedAt": "2026-10-03T13:01:34.519Z",
+ "minutes": 97.61571666666666,
+ "runs": 3,
+ "buggy": 12,
+ "clean": 4,
+ "rows": [
+  {
+   "label": "Claude Sonnet 5.5",
+   "lanes": [
+    "claude"
+   ],
+   "minVotes": 1,
+   "found": [
+    12,
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    2,
+    2,
+    2
+   ],
+   "falseAlarmsMean": 2,
+   "findings": 162,
+   "madeUp": 4,
+   "failed": 0,
+   "medianSeconds": 11.6595,
+   "medianTokensIn": 8850.5
+  },
+  {
+   "label": "Codex GPT-5.6 Terra",
+   "lanes": [
+    "codex"
+   ],
+   "minVotes": 1,
+   "found": [
+    11,
+    11,
+    11
+   ],
+   "foundMean": 11,
+   "falseAlarms": [
+    1,
+    0,
+    0
+   ],
+   "falseAlarmsMean": 0.3333333333333333,
+   "findings": 40,
+   "madeUp": 3,
+   "failed": 0,
+   "medianSeconds": 10.416,
+   "medianTokensIn": 16532.5
+  },
+  {
+   "label": "Gemini 3.8 Flash",
+   "lanes": [
+    "gemini"
+   ],
+   "minVotes": 1,
+   "found": [
+    12,
+    12,
+    11
+   ],
+   "foundMean": 11.666666666666666,
+   "falseAlarms": [
+    0,
+    1,
+    1
+   ],
+   "falseAlarmsMean": 0.6666666666666666,
+   "findings": 51,
+   "madeUp": 0,
+   "failed": 0,
+   "medianSeconds": 72.598,
+   "medianTokensIn": 14598.5
+  },
+  {
+   "label": "GPT-OSS 120B",
+   "lanes": [
+    "oss"
+   ],
+   "minVotes": 1,
+   "found": [
+    9,
+    8,
+    9
+   ],
+   "foundMean": 8.666666666666666,
+   "falseAlarms": [
+    5,
+    0,
+    1
+   ],
+   "falseAlarmsMean": 2,
+   "findings": 69,
+   "madeUp": 3,
+   "failed": 6,
+   "medianSeconds": 85.932,
+   "medianTokensIn": 26422
+  },
+  {
+   "label": "Gauntlet council, any family",
+   "lanes": [
+    "codex",
+    "gemini",
+    "oss"
+   ],
+   "minVotes": 1,
+   "found": [
+    12,
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    6,
+    1,
+    2
+   ],
+   "falseAlarmsMean": 3,
+   "findings": 160,
+   "madeUp": 6,
+   "failed": 6,
+   "medianSeconds": 107.2555,
+   "medianTokensIn": 16049
+  },
+  {
+   "label": "Gauntlet council, 2+ families agree",
+   "lanes": [
+    "codex",
+    "gemini",
+    "oss"
+   ],
+   "minVotes": 2,
+   "found": [
+    11,
+    11,
+    10
+   ],
+   "foundMean": 10.666666666666666,
+   "falseAlarms": [
+    0,
+    0,
+    1
+   ],
+   "falseAlarmsMean": 0.3333333333333333,
+   "findings": 160,
+   "madeUp": 6,
+   "failed": 6,
+   "medianSeconds": 107.2555,
+   "medianTokensIn": 16049
+  },
+  {
+   "label": "Claude + Gauntlet council, 2+ of 4 agree",
+   "lanes": [
+    "codex",
+    "gemini",
+    "oss",
+    "claude"
+   ],
+   "minVotes": 2,
+   "found": [
+    12,
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    1,
+    0,
+    1
+   ],
+   "falseAlarmsMean": 0.6666666666666666,
+   "findings": 322,
+   "madeUp": 10,
+   "failed": 6,
+   "medianSeconds": 107.2555,
+   "medianTokensIn": 14678
+  }
+ ],
+ "perBug": [
+  {
+   "id": "lru",
+   "bug": "get() never refreshes recency, so the cache evicts the entry that was just read: it behaves as FIFO, not LRU.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 2,
+    "claude": 3
+   }
+  },
+  {
+   "id": "semaphore",
+   "bug": "A cache hit returns after acquire() without release(): every hit leaks a permit until all renders hang.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 2,
+    "claude": 3
+   }
+  },
+  {
+   "id": "billing",
+   "bug": "charge.js passes cents as `amount`, gateway.js expects major units and multiplies by 100: every customer is charged 100 times the total.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 2,
+    "claude": 3
+   }
+  },
+  {
+   "id": "token-bucket",
+   "bug": "elapsed is in milliseconds but the rate is per second: buckets refill 1000 times too fast and the limiter never limits.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 3,
+    "claude": 3
+   }
+  },
+  {
+   "id": "emitter",
+   "bug": "off() with an unregistered listener: indexOf returns -1 and splice(-1, 1) removes the last listener.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 3,
+    "claude": 3
+   }
+  },
+  {
+   "id": "playlist",
+   "bug": "Mutable default argument: every Playlist created without tracks shares one list.",
+   "found": {
+    "codex": 3,
+    "gemini": 2,
+    "oss": 0,
+    "claude": 3
+   }
+  },
+  {
+   "id": "report",
+   "bug": "The generator is exhausted by the count, so revenue is always 0.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 2,
+    "claude": 3
+   }
+  },
+  {
+   "id": "http-timeout",
+   "bug": "config.timeout is in seconds, setTimeout takes milliseconds: every request is aborted after 30 ms.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 3,
+    "claude": 3
+   }
+  },
+  {
+   "id": "admin-route",
+   "bug": "DELETE /admin/users/:id has no auth at all and is registered before app.use(requireUser): anyone can delete users.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 3,
+    "claude": 3
+   }
+  },
+  {
+   "id": "booking",
+   "bug": "Check-then-insert without a transaction or lock: concurrent bookings overbook the event.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 3,
+    "claude": 3
+   }
+  },
+  {
+   "id": "signup",
+   "bug": "EMAIL_RE has a nested quantifier: crafted input causes catastrophic backtracking (ReDoS).",
+   "found": {
+    "codex": 0,
+    "gemini": 3,
+    "oss": 0,
+    "claude": 3
+   }
+  },
+  {
+   "id": "versions",
+   "bug": "sort() compares version strings lexicographically: 1.9.0 is picked over 1.10.0.",
+   "found": {
+    "codex": 3,
+    "gemini": 3,
+    "oss": 3,
+    "claude": 3
+   }
+  }
+ ]
+}

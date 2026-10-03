@@ -1,3 +1,4 @@
 node_modules/
 *.gauntlet-backup-*
 .DS_Store
+bench/.home/

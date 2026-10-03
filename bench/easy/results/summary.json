@@ -1,0 +1,294 @@
+{
+ "set": "easy",
+ "source": "raw-2026-10-02T23-53-57-433Z.json",
+ "startedAt": "2026-10-02T23:01:26.565Z",
+ "minutes": 52.51448333333333,
+ "runs": 2,
+ "buggy": 12,
+ "clean": 3,
+ "rows": [
+  {
+   "label": "Claude Sonnet 4.6",
+   "lanes": [
+    "claude"
+   ],
+   "minVotes": 1,
+   "found": [
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    3,
+    3
+   ],
+   "falseAlarmsMean": 3,
+   "findings": 54,
+   "madeUp": 0,
+   "failed": 0,
+   "medianSeconds": 22.0625,
+   "medianTokensIn": 6405
+  },
+  {
+   "label": "Codex GPT-5.6 Terra",
+   "lanes": [
+    "codex"
+   ],
+   "minVotes": 1,
+   "found": [
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    1,
+    0
+   ],
+   "falseAlarmsMean": 0.5,
+   "findings": 30,
+   "madeUp": 0,
+   "failed": 0,
+   "medianSeconds": 8.935,
+   "medianTokensIn": 15810.5
+  },
+  {
+   "label": "Gemini 3.8 Flash",
+   "lanes": [
+    "gemini"
+   ],
+   "minVotes": 1,
+   "found": [
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    2,
+    2
+   ],
+   "falseAlarmsMean": 2,
+   "findings": 32,
+   "madeUp": 0,
+   "failed": 0,
+   "medianSeconds": 54.1865,
+   "medianTokensIn": 15231
+  },
+  {
+   "label": "GPT-OSS 120B",
+   "lanes": [
+    "oss"
+   ],
+   "minVotes": 1,
+   "found": [
+    11,
+    9
+   ],
+   "foundMean": 10,
+   "falseAlarms": [
+    2,
+    3
+   ],
+   "falseAlarmsMean": 2.5,
+   "findings": 37,
+   "madeUp": 1,
+   "failed": 0,
+   "medianSeconds": 56.5485,
+   "medianTokensIn": 154550.5
+  },
+  {
+   "label": "Gauntlet council, any family",
+   "lanes": [
+    "codex",
+    "gemini",
+    "oss"
+   ],
+   "minVotes": 1,
+   "found": [
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    5,
+    5
+   ],
+   "falseAlarmsMean": 5,
+   "findings": 99,
+   "madeUp": 1,
+   "failed": 0,
+   "medianSeconds": 84.8375,
+   "medianTokensIn": 15821.5
+  },
+  {
+   "label": "Gauntlet council, 2+ families agree",
+   "lanes": [
+    "codex",
+    "gemini",
+    "oss"
+   ],
+   "minVotes": 2,
+   "found": [
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    1,
+    0
+   ],
+   "falseAlarmsMean": 0.5,
+   "findings": 99,
+   "madeUp": 1,
+   "failed": 0,
+   "medianSeconds": 84.8375,
+   "medianTokensIn": 15821.5
+  },
+  {
+   "label": "Claude + Gauntlet council, 2+ of 4 agree",
+   "lanes": [
+    "codex",
+    "gemini",
+    "oss",
+    "claude"
+   ],
+   "minVotes": 2,
+   "found": [
+    12,
+    12
+   ],
+   "foundMean": 12,
+   "falseAlarms": [
+    1,
+    1
+   ],
+   "falseAlarmsMean": 1,
+   "findings": 153,
+   "madeUp": 1,
+   "failed": 0,
+   "medianSeconds": 84.8375,
+   "medianTokensIn": 15729.5
+  }
+ ],
+ "perBug": [
+  {
+   "id": "pagination.js",
+   "bug": "Off-by-one: the loop uses <= with an exclusive end, so every page gets one extra (or undefined) item.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 1,
+    "claude": 2
+   }
+  },
+  {
+   "id": "fetch-user.js",
+   "bug": "Missing await on fetch: res is a Promise, so res.ok is always undefined.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  },
+  {
+   "id": "orders.py",
+   "bug": "SQL injection: the customer name is interpolated into the query with an f-string.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  },
+  {
+   "id": "pricing.js",
+   "bug": "Units: percentOff is 0-100 but is used as a fraction, so a 10% discount makes the price negative.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  },
+  {
+   "id": "download.js",
+   "bug": "Path traversal: name=../../etc/passwd escapes UPLOAD_DIR.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  },
+  {
+   "id": "retry.py",
+   "bug": "The give-up check is unreachable after continue, so a persistent TransientError retries forever.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 1,
+    "claude": 2
+   }
+  },
+  {
+   "id": "cache.ts",
+   "bug": "Inverted expiry check: fresh entries are deleted and expired ones are returned.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  },
+  {
+   "id": "zipcode.py",
+   "bug": "re.match without an end anchor accepts '123456' or '12345abc'.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 1,
+    "claude": 2
+   }
+  },
+  {
+   "id": "session.js",
+   "bug": "jwt.decode does not verify the signature or expiry, so anyone can forge an admin token.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  },
+  {
+   "id": "leaderboard.js",
+   "bug": "Array.prototype.sort() without a comparator sorts numbers as strings (10 before 9).",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  },
+  {
+   "id": "due-date.js",
+   "bug": "new Date('YYYY-MM-DD') is UTC midnight but getDay/getDate read local time: off by a day west of UTC.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 1,
+    "claude": 2
+   }
+  },
+  {
+   "id": "inventory.py",
+   "bug": "average_stock divides by zero on an empty history.",
+   "found": {
+    "codex": 2,
+    "gemini": 2,
+    "oss": 2,
+    "claude": 2
+   }
+  }
+ ]
+}

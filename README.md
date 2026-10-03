@@ -86,24 +86,82 @@ pick it up on their next message, without a restart. It's the part I'm proudest 
 and the one I'd point a curious engineer at first. See
 [architecture](docs/architecture.md).
 
-## Numbers
+## Benchmark
 
-These are from my machine (Windows 11, personal ChatGPT and Google plans, October 2026),
-so take them as one data point. `gauntlet stats` will give you yours.
+I wanted numbers, not adjectives, so I built a small benchmark and ran it against the
+live models: 16 code samples, 4 reviewers, 3 runs, 192 reviews in all.
 
-| What | Result |
-|---|---|
-| `quick_check` on a one-file question (Gemini, light tier) | 25 s; about 31k tokens on Google's side, none on Claude's for the review itself |
-| Same question again, file unchanged | answered from cache in 0.0 s |
-| Two-family council on that file | 108 s; two real bugs that one family missed |
-| A 44,500-character document through the text-review agent | 32 s; it caught the typo in the last sentence |
-| Regression suite for the six internal agents | 5/5 on live models |
-| Same suite with Codex broken, then Codex and Gemini both broken | 5/5, answered by Gemini, then by Claude |
+Twelve samples have one bug I planted on purpose, and they're not textbook ones:
+- an LRU cache that never refreshes recency;
+- a semaphore that leaks a permit on cache hits;
+- cents passed to an API that expects euros, across two files;
+- a token bucket that refills in milliseconds instead of seconds;
+- an Express route registered before its auth middleware;
+- a booking race;
+- a ReDoS-prone regex;
+- and five more.
+
+The other four files are correct. Before the run, three model families checked them and
+found nothing, and they're there to count false alarms. Every reviewer got the same prompt
+and the same files. A bug only counts as found when the finding points at the right lines
+**and** names the actual problem. The method, the corpus and the raw answers are all in
+the repo; see [docs/benchmark.md](docs/benchmark.md).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/bench/false-alarms-dark.svg">
+  <img alt="False alarms per run on four bug-free files: Claude Sonnet 5.5 2, Codex 0.3, Gemini 0.7, GPT-OSS 2, Gauntlet council any family 3, council with 2+ families agreeing 0.3, Claude plus council with 2 of 4 agreeing 0.7" src="docs/bench/false-alarms-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/bench/bugs-found-dark.svg">
+  <img alt="Seeded bugs found out of 12: Claude Sonnet 5.5 12, Codex 11, Gemini 11.7, GPT-OSS 8.7, Gauntlet council any family 12, council with 2+ families agreeing 10.7, Claude plus council with 2 of 4 agreeing 12" src="docs/bench/bugs-found-light.svg">
+</picture>
+
+What I take from it:
+
+- **Frontier models find most single-file bugs on their own.** Claude found all 12 every
+  time, and Gemini nearly all. I wasn't expecting that, and I'm not going to pretend
+  otherwise. Gauntlet isn't about finding more bugs than a good model already does.
+- **What it fixes is noise.** Claude alone raised 2 false alarms per run on code with
+  nothing wrong in it. Add the council and keep only what at least two of the four
+  families agree on, and you still get 12 of 12 bugs with 0.7 false alarms per run. That
+  is a third of the noise, without losing a single bug.
+- **Single reviewers have fixed blind spots.** Codex missed the ReDoS in all three runs.
+  GPT-OSS missed the mutable default argument every time. Another family covers those.
+- **Made-up findings are rare but real.** About 2-8% of findings from Claude, Codex and
+  GPT-OSS quoted code that isn't in the file (Gemini: none). Gauntlet looks up every
+  quote and labels those before Claude reads them:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/bench/made-up-dark.svg">
+  <img alt="Share of findings quoting code that is not in the file: Claude Sonnet 5.5 2 percent, Codex 8 percent, Gemini 0 percent, GPT-OSS 4 percent" src="docs/bench/made-up-light.svg">
+</picture>
+
+| Reviewer | Bugs found (of 12) | False alarms / run | Median time per review |
+|---|---|---|---|
+| Claude Sonnet 5.5 (alone) | 12 | 2.0 | 12 s |
+| Codex GPT-5.6 Terra | 11 | 0.3 | 10 s |
+| Gemini 3.8 Flash | 11.7 | 0.7 | 73 s |
+| GPT-OSS 120B | 8.7 | 2.0 | 86 s |
+| Gauntlet council (any family) | 12 | 3.0 | 107 s |
+| Gauntlet council (2+ families agree) | 10.7 | 0.3 | 107 s |
+| **Claude + Gauntlet council (2+ of 4 agree)** | **12** | **0.7** | 107 s |
+
+Some caveats:
+- Sixteen samples is small.
+- I wrote the bugs.
+- The models change week to week.
+- The council's time is its slowest voice, because the families run in parallel.
+- GPT-OSS didn't answer 6 of its 48 reviews; those count as misses, not as somebody
+  else's answer.
+
+There's also an [easy set](docs/benchmark.md#the-easy-set) of textbook bugs, where every
+frontier model scores 12 of 12. That's why the set above exists.
 
 A word on tokens. Gauntlet doesn't make reviews free. It moves them off your Claude plan and
-keeps the packets small. [docs/token-savings.md](docs/token-savings.md) explains where the
-savings come from and how to measure them on your own work. I'd rather you measure than
-take my word for it.
+keeps the packets small: a median review above cost between 9k and 26k tokens on the other
+provider's side, depending on the model, and none on Claude's. [docs/token-savings.md](docs/token-savings.md)
+explains where the savings come from and how to measure them on your own work.
 
 ## Installing
 

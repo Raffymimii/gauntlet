@@ -1,0 +1,3473 @@
+{
+ "startedAt": "2026-10-02T23:01:26.565Z",
+ "minutes": 52.51448333333333,
+ "lanes": [
+  "codex",
+  "gemini",
+  "oss",
+  "claude"
+ ],
+ "runs": 2,
+ "results": [
+  {
+   "run": 1,
+   "file": "pagination.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 8843,
+   "error": null,
+   "usage": {
+    "inputTokens": 15804,
+    "cachedInputTokens": 0,
+    "outputTokens": 427
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "pagination.js",
+     "line": 17,
+     "claim": "The inclusive loop bound pushes `items[end]`, but `end` is exclusive, so each page contains an extra `undefined` entry.",
+     "evidence": "  for (let i = start; i <= end; i++) {",
+     "fix": "Use an exclusive bound: `for (let i = start; i < end; i++) {`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "pagination.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 55685,
+   "error": null,
+   "usage": {
+    "inputTokens": 15275,
+    "cachedInputTokens": 0,
+    "outputTokens": 42626
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The loop condition uses <= instead of <, resulting in an off-by-one error that yields pageSize + 1 items and appends undefined.",
+     "evidence": "  for (let i = start; i <= end; i++) {",
+     "file": "pagination.js",
+     "fix": "for (let i = start; i < end; i++) {",
+     "line": 19,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "pagination.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 231105,
+   "error": null,
+   "usage": {
+    "inputTokens": 781900,
+    "cachedInputTokens": 0,
+    "outputTokens": 35492
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "evidence": "for (let i = start; i <= end; i++) {",
+     "line": 19,
+     "fix": "Change the loop condition to stop before `end` to avoid including an out‑of‑bounds element: `for (let i = start; i < end; i++) {`."
+    }
+   ],
+   "verification": "0/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "pagination.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 12975,
+   "error": null,
+   "usage": {
+    "inputTokens": 6445,
+    "cachedInputTokens": 10936,
+    "outputTokens": 561
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Loop condition `i <= end` is inclusive, but `end` is already one past the last valid index (it equals `start + pageSize` or `items.length`). On the final iteration `items[end]` is `undefined`, so every returned page has one spurious `undefined` appended.",
+     "evidence": "  for (let i = start; i <= end; i++) {",
+     "file": "pagination.js",
+     "fix": "Change `i <= end` to `i < end`:\n  for (let i = start; i < end; i++) {",
+     "line": 19,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "fetch-user.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 7562,
+   "error": null,
+   "usage": {
+    "inputTokens": 15769,
+    "cachedInputTokens": 15104,
+    "outputTokens": 300
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "fetch-user.js",
+     "line": 13,
+     "claim": "`fetch` is not awaited, so `res.ok` and `res.text()` are accessed on a Promise rather than an HTTP response.",
+     "evidence": "  const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "fix": "Await the request: `const res = await fetch(...);`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "fetch-user.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 48143,
+   "error": null,
+   "usage": {
+    "inputTokens": 15227,
+    "cachedInputTokens": 0,
+    "outputTokens": 32907
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Missing await on fetch call causes res to be a Promise instead of a Response, making res.ok undefined and throwing a TypeError on res.text().",
+     "evidence": "  const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "file": "fetch-user.js",
+     "fix": "  const res = await fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "line": 13,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "fetch-user.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 50229,
+   "error": null,
+   "usage": {
+    "inputTokens": 137137,
+    "cachedInputTokens": 0,
+    "outputTokens": 7856
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Missing `await` on the `fetch` call causes `res` to be a Promise, so `res.ok`, `res.text()` and `res.json()` will fail at runtime.",
+     "evidence": "const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "file": "fetch-user.js",
+     "fix": "Add `await` before `fetch`: `const res = await fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {`",
+     "line": 13,
+     "severity": "high"
+    },
+    {
+     "claim": "`getUsers` assumes `ids` is iterable; if `ids` is null or not an array, `new Set(ids)` will throw.",
+     "evidence": "const unique = [...new Set(ids)];",
+     "file": "fetch-user.js",
+     "fix": "Validate the input before using it, e.g., `if (!Array.isArray(ids)) throw new TypeError('ids must be an array');` before this line.",
+     "line": 24,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "fetch-user.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 30225,
+   "error": null,
+   "usage": {
+    "inputTokens": 6400,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1617
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "`fetch()` is not awaited, so `res` is a Promise, not a Response. `res.ok` is `undefined`, making `!res.ok` always `true`; then `res.text()` throws `TypeError: res.text is not a function` because a Promise has no `.text()` method. The function never resolves successfully.",
+     "evidence": "  const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "file": "fetch-user.js",
+     "fix": "Add `await`: `const res = await fetch(\\`${API_BASE}/users/${encodeURIComponent(id)}\\`, {`",
+     "line": 13,
+     "severity": "high"
+    },
+    {
+     "claim": "`res.json()` is returned without `await`, so the caller gets a pending Promise<any> instead of the parsed object. In an `async` function this is re-wrapped in another Promise, so `await getUser(id)` still works — but an unhandled JSON-parse error will produce an unhandled rejection rather than a catchable throw inside `getUser`, making error handling unreliable.",
+     "evidence": "  return res.json();",
+     "file": "fetch-user.js",
+     "fix": "Change to `return await res.json();` so parse errors are caught within the async function's own error boundary.",
+     "line": 20,
+     "severity": "medium"
+    },
+    {
+     "claim": "`getUsers` does not validate that `ids` is iterable; passing `null` or `undefined` throws `TypeError: ids is not iterable` with no helpful message, unlike the guarded check in `getUser`.",
+     "evidence": "  const unique = [...new Set(ids)];",
+     "file": "fetch-user.js",
+     "fix": "Add a guard: `if (!Array.isArray(ids)) throw new TypeError('ids must be an array');`",
+     "line": 24,
+     "severity": "low"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "orders.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 5992,
+   "error": null,
+   "usage": {
+    "inputTokens": 15833,
+    "cachedInputTokens": 0,
+    "outputTokens": 159
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "orders.py",
+     "line": 22,
+     "claim": "Customer input is directly embedded in the SQL string, so a quote-containing or malicious value can alter the query.",
+     "evidence": "    query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "fix": "Parameterize `customer` like `status`: use `WHERE customer = ?`, initialize `params = [customer]`, and pass both values to `execute`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "orders.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 43734,
+   "error": null,
+   "usage": {
+    "inputTokens": 15285,
+    "cachedInputTokens": 0,
+    "outputTokens": 31884
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The customer parameter is directly interpolated into the SQL query using an f-string, creating a SQL injection vulnerability and breaking on names containing apostrophes.",
+     "evidence": "    query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "file": "orders.py",
+     "fix": "Use a parameterized query placeholder '?' for customer and initialize params with [customer].",
+     "line": 21,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "orders.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 64153,
+   "error": null,
+   "usage": {
+    "inputTokens": 224348,
+    "cachedInputTokens": 0,
+    "outputTokens": 9746
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "SQL injection vulnerability due to direct string interpolation of the `customer` parameter in the SQL query.",
+     "evidence": "query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "file": "orders.py",
+     "fix": "Replace the f‑string with a parameterized query, e.g. `query = \"SELECT id, customer, total_cents, status FROM orders WHERE customer = ?\"`; then prepend `customer` to `params` before executing the query.",
+     "line": 18,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "orders.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 15917,
+   "error": null,
+   "usage": {
+    "inputTokens": 6454,
+    "cachedInputTokens": 10936,
+    "outputTokens": 699
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The `customer` argument is interpolated directly into the SQL string via an f-string, making this trivially injectable (e.g. customer = \"' OR '1'='1\"). The `status` parameter on the very next line is correctly parameterized with `?`, making the inconsistency obvious.",
+     "evidence": "    query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "file": "orders.py",
+     "fix": "Use a parameterized placeholder for customer too:\n    query = \"SELECT id, customer, total_cents, status FROM orders WHERE customer = ?\"\n    params: list = [customer]\nThen append status to params as before.",
+     "line": 20,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "pricing.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9094,
+   "error": null,
+   "usage": {
+    "inputTokens": 15805,
+    "cachedInputTokens": 15104,
+    "outputTokens": 465
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "pricing.js",
+     "line": 15,
+     "claim": "Any nonzero percentage discount produces an incorrect (often negative) price because `pct` is not divided by 100.",
+     "evidence": "  const discounted = priceCents * (1 - pct);",
+     "fix": "Calculate the multiplier as `1 - pct / 100`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "pricing.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 52879,
+   "error": null,
+   "usage": {
+    "inputTokens": 15266,
+    "cachedInputTokens": 0,
+    "outputTokens": 37176
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The discount percentage is not divided by 100 before subtracting from 1, causing any discount over 1% to produce negative line totals.",
+     "evidence": "  const discounted = priceCents * (1 - pct);",
+     "file": "pricing.js",
+     "fix": "const discounted = priceCents * (1 - pct / 100);",
+     "line": 15,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "pricing.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 257255,
+   "error": null,
+   "usage": {
+    "inputTokens": 828995,
+    "cachedInputTokens": 0,
+    "outputTokens": 38216
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Discount calculation incorrectly uses percentage directly, causing wrong totals.",
+     "evidence": "const discounted = priceCents * (1 - pct);",
+     "file": "pricing.js",
+     "fix": "Change to `const discounted = priceCents * (1 - pct / 100);`",
+     "line": 15,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "pricing.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 23753,
+   "error": null,
+   "usage": {
+    "inputTokens": 6440,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1252
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "percentOff is clamped to 0–100 but then used raw in (1 - pct), so a 20% discount produces a multiplier of -19 instead of 0.80, giving a large negative line total.",
+     "evidence": "  const discounted = priceCents * (1 - pct);",
+     "file": "pricing.js",
+     "fix": "Divide pct by 100 before subtracting: `const discounted = priceCents * (1 - pct / 100);`",
+     "line": 15,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "download.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 10488,
+   "error": null,
+   "usage": {
+    "inputTokens": 15816,
+    "cachedInputTokens": 15104,
+    "outputTokens": 598
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "download.js",
+     "line": 19,
+     "claim": "A `../` path in `name` escapes `UPLOAD_DIR`, allowing an attacker to download arbitrary readable files.",
+     "evidence": "  const filePath = path.join(UPLOAD_DIR, name);",
+     "fix": "Resolve the requested path and reject it unless it remains inside `UPLOAD_DIR`; also reject path separators or use an allowlisted filename."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "download.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 35038,
+   "error": null,
+   "usage": {
+    "inputTokens": 30738,
+    "cachedInputTokens": 0,
+    "outputTokens": 9920
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "User-supplied file name is joined without sanitization or boundary verification, enabling directory traversal to read arbitrary files outside UPLOAD_DIR.",
+     "evidence": "  const filePath = path.join(UPLOAD_DIR, name);",
+     "file": "download.js",
+     "fix": "Ensure the resolved path stays within UPLOAD_DIR before serving (e.g. verify filePath.startsWith(UPLOAD_DIR + path.sep)) or restrict `name` to a basename without path separators.",
+     "line": 18,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "download.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 34680,
+   "error": null,
+   "usage": {
+    "inputTokens": 91862,
+    "cachedInputTokens": 0,
+    "outputTokens": 5099
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Filename from query parameter is not validated, allowing path traversal.",
+     "evidence": "const name = String(req.query.name || '');",
+     "file": "download.js",
+     "fix": "Validate and normalize the filename, resolve the path, and ensure it stays within the upload directory. Example:\n```js\nconst name = String(req.query.name || '');\nif (!name) return res.status(400).json({ error: 'name is required' });\nconst filePath = path.resolve(UPLOAD_DIR, name);\nif (!filePath.startsWith(UPLOAD_DIR + path.sep)) {\n  return res.status(400).json({ error: 'Invalid filename' });\n}\n```",
+     "line": 16,
+     "severity": "high"
+    },
+    {
+     "claim": "Path is built with path.join, which does not prevent traversal.",
+     "evidence": "const filePath = path.join(UPLOAD_DIR, name);",
+     "file": "download.js",
+     "fix": "Replace path.join with path.resolve and perform the same containment check as above.",
+     "line": 18,
+     "severity": "high"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "download.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 32355,
+   "error": null,
+   "usage": {
+    "inputTokens": 6451,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1746
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Path traversal: `name` is user-supplied and never checked to stay within UPLOAD_DIR. `path.join(UPLOAD_DIR, '../../etc/passwd')` resolves to `/etc/passwd`, which then passes the `isFile()` guard and is served.",
+     "evidence": "  const filePath = path.join(UPLOAD_DIR, name);",
+     "file": "download.js",
+     "fix": "After computing filePath, assert it is still inside UPLOAD_DIR:\n```js\nif (!filePath.startsWith(UPLOAD_DIR + path.sep) && filePath !== UPLOAD_DIR)\n  return res.status(400).json({ error: 'invalid name' });\n```",
+     "line": 18,
+     "severity": "high"
+    },
+    {
+     "claim": "Hidden files (dotfiles) are filtered from the listing, creating a false expectation of protection, but are fully downloadable via the download endpoint—e.g. `?name=.env` or `?name=.htpasswd` succeeds.",
+     "evidence": "    res.json({ files: names.filter((n) => !n.startsWith('.')) });",
+     "file": "download.js",
+     "fix": "Apply the same dotfile check in the download handler: after extracting `name`, reject it if `path.basename(name).startsWith('.')`.",
+     "line": 11,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "retry.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 8541,
+   "error": null,
+   "usage": {
+    "inputTokens": 15728,
+    "cachedInputTokens": 0,
+    "outputTokens": 466
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "retry.py",
+     "line": 21,
+     "claim": "`continue` restarts the loop before the attempt-limit check, making the check and its `RuntimeError` unreachable after every `TransientError`.",
+     "evidence": "            continue",
+     "fix": "Check `attempts >= MAX_ATTEMPTS` inside the `except TransientError` block before calculating the delay and sleeping."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "retry.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 85594,
+   "error": null,
+   "usage": {
+    "inputTokens": 15154,
+    "cachedInputTokens": 0,
+    "outputTokens": 58130
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The `continue` statement makes the retry limit check unreachable, causing an infinite retry loop when transient errors occur.",
+     "evidence": "            continue",
+     "file": "retry.py",
+     "fix": "Remove `continue` and move the `if attempts >= MAX_ATTEMPTS:` check inside the `except` block before sleeping.",
+     "line": 24,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "retry.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 80627,
+   "error": null,
+   "usage": {
+    "inputTokens": 279028,
+    "cachedInputTokens": 0,
+    "outputTokens": 13312
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "The max‑attempts guard is unreachable because it follows a `continue` inside the `except` block, so the function will retry indefinitely on `TransientError`.",
+     "evidence": "if attempts >= MAX_ATTEMPTS:",
+     "file": "retry.py",
+     "fix": "Move the max‑attempts check before the `continue`. For example:\n```python\nattempts += 1\nif attempts >= MAX_ATTEMPTS:\n    raise RuntimeError(f\"gave up after {attempts} attempts\")\ndelay = BASE_DELAY * (2 ** attempts) + random.uniform(0, 0.1)\ntime.sleep(delay)\ncontinue\n```",
+     "line": 25,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "retry.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 33739,
+   "error": null,
+   "usage": {
+    "inputTokens": 6334,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1989
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The `if attempts >= MAX_ATTEMPTS` guard is unreachable dead code. Inside the `except` block the `continue` on line 24 unconditionally jumps back to the top of the `while True` loop, so execution never falls through to lines 25-26. MAX_ATTEMPTS is therefore never enforced and the function retries forever on a persistent TransientError.",
+     "evidence": "        if attempts >= MAX_ATTEMPTS:",
+     "file": "retry.py",
+     "fix": "Move the guard inside the `except` block, before the `continue`, and re-raise (or raise RuntimeError) when the limit is hit:\n```python\nexcept TransientError:\n    attempts += 1\n    if attempts >= MAX_ATTEMPTS:\n        raise RuntimeError(f\"gave up after {attempts} attempts\")\n    delay = BASE_DELAY * (2 ** attempts) + random.uniform(0, 0.1)\n    time.sleep(delay)\n```",
+     "line": 25,
+     "severity": "high"
+    },
+    {
+     "claim": "The exponential back-off is computed after incrementing `attempts`, so the first sleep is already BASE_DELAY * 2^1 = 0.4 s and the fifth (final, if guard were reachable) would be BASE_DELAY * 2^5 = 6.4 s. Most retry libraries keep the exponent zero-based (2^0 on the first retry). This is a design issue, not a crash, but the delays grow faster than likely intended.",
+     "evidence": "            delay = BASE_DELAY * (2 ** attempts) + random.uniform(0, 0.1)",
+     "file": "retry.py",
+     "fix": "Use `attempts - 1` as the exponent, or compute the delay before incrementing `attempts`, to get BASE_DELAY * 2^0 on the first retry.",
+     "line": 22,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "cache.ts",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 18408,
+   "error": null,
+   "usage": {
+    "inputTokens": 15783,
+    "cachedInputTokens": 0,
+    "outputTokens": 610
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "cache.ts",
+     "line": 16,
+     "claim": "The cache treats entries whose expiration is still in the future as expired and returns entries after their TTL has elapsed.",
+     "evidence": "    if (entry.expires > Date.now()) {",
+     "fix": "Change the comparison to `if (entry.expires <= Date.now()) {`."
+    },
+    {
+     "severity": "medium",
+     "file": "cache.ts",
+     "line": 23,
+     "claim": "Updating an existing key while the cache is full unnecessarily evicts the oldest different entry.",
+     "evidence": "    if (this.entries.size >= this.maxEntries) {",
+     "fix": "Only evict when the key is new: `if (!this.entries.has(key) && this.entries.size >= this.maxEntries) { ... }`."
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "cache.ts",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 51747,
+   "error": null,
+   "usage": {
+    "inputTokens": 15252,
+    "cachedInputTokens": 0,
+    "outputTokens": 35533
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The expiration condition is inverted, causing valid unexpired entries to be deleted immediately while expired entries are retained and returned.",
+     "evidence": "    if (entry.expires > Date.now()) {",
+     "file": "cache.ts",
+     "fix": "if (entry.expires <= Date.now()) {",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "Updating an existing key when the cache is at capacity evicts an unrelated entry because set does not check if the key is already present.",
+     "evidence": "    if (this.entries.size >= this.maxEntries) {",
+     "file": "cache.ts",
+     "fix": "if (!this.entries.has(key) && this.entries.size >= this.maxEntries) {",
+     "line": 22,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "cache.ts",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 229899,
+   "error": null,
+   "usage": {
+    "inputTokens": 774094,
+    "cachedInputTokens": 0,
+    "outputTokens": 37578
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "evidence": "if (entry.expires > Date.now()) {",
+     "line": 14,
+     "fix": "Change the comparison to `if (entry.expires <= Date.now()) {` so that entries are treated as expired only when their timestamp is past."
+    },
+    {
+     "evidence": "this.entries.set(key, { value, expires: Date.now() + ttlMs });",
+     "line": 26,
+     "fix": "Reference the instance field: `this.entries.set(key, { value, expires: Date.now() + this.ttlMs });`"
+    }
+   ],
+   "verification": "0/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "cache.ts",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 19545,
+   "error": null,
+   "usage": {
+    "inputTokens": 6421,
+    "cachedInputTokens": 10936,
+    "outputTokens": 866
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Expiry check is backwards. `entry.expires > Date.now()` is true while the entry is still fresh, so fresh entries are deleted and undefined is returned, while expired entries pass through and their stale value is returned.",
+     "evidence": "    if (entry.expires > Date.now()) {",
+     "file": "cache.ts",
+     "fix": "Flip the comparison: `if (entry.expires < Date.now()) { this.entries.delete(key); return undefined; }`",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "`size` counts expired entries that have not yet been evicted, so callers get an inflated count and the maxEntries eviction in `set` may trigger prematurely.",
+     "evidence": "    return this.entries.size;",
+     "file": "cache.ts",
+     "fix": "Acceptable as-is if size is treated as an approximation; otherwise iterate and count only non-expired entries, or evict lazily on every `get`.",
+     "line": 29,
+     "severity": "low"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "zipcode.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 11406,
+   "error": null,
+   "usage": {
+    "inputTokens": 15779,
+    "cachedInputTokens": 0,
+    "outputTokens": 506
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "zipcode.py",
+     "line": 10,
+     "claim": "The prefix match accepts trailing non-ZIP content and `normalize_zip` returns it as the ZIP value.",
+     "evidence": "    if not ZIP_RE.match(value):",
+     "fix": "Use a full-string validation, e.g. `ZIP_RE = re.compile(r\"[0-9]{5}\")` and `if not ZIP_RE.fullmatch(value):`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "zipcode.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 101392,
+   "error": null,
+   "usage": {
+    "inputTokens": 15233,
+    "cachedInputTokens": 0,
+    "outputTokens": 69544
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "ZIP_RE.match only checks that the string begins with 5 digits, allowing invalid ZIP codes with trailing characters or extra digits to pass validation.",
+     "evidence": "    if not ZIP_RE.match(value):",
+     "file": "zipcode.py",
+     "fix": "if not ZIP_RE.fullmatch(value):",
+     "line": 10,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "zipcode.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 43112,
+   "error": null,
+   "usage": {
+    "inputTokens": 107508,
+    "cachedInputTokens": 0,
+    "outputTokens": 6353
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "Regex does not enforce start/end anchors, allowing longer strings to match.",
+     "evidence": "ZIP_RE = re.compile(r\"\\d{5}\")",
+     "file": "zipcode.py",
+     "fix": "Anchor the regex to enforce exactly five digits: `ZIP_RE = re.compile(r\"^\\d{5}$\")`.",
+     "line": 4,
+     "severity": "high"
+    },
+    {
+     "claim": "`match` only checks prefix, so values like \"12345abc\" are incorrectly accepted.",
+     "evidence": "    if not ZIP_RE.match(value):",
+     "file": "zipcode.py",
+     "fix": "Use `fullmatch` instead of `match` to require the whole string to be five digits: `if not ZIP_RE.fullmatch(value):`.",
+     "line": 10,
+     "severity": "high"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "zipcode.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 27229,
+   "error": null,
+   "usage": {
+    "inputTokens": 6405,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1350
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "re.match() only anchors at the start of the string, not the end, so any string whose first five characters are digits passes—e.g. \"123456\" or \"12345abc\" are both accepted and returned verbatim as the zip value.",
+     "evidence": "    if not ZIP_RE.match(value):",
+     "file": "zipcode.py",
+     "fix": "Replace ZIP_RE.match with ZIP_RE.fullmatch, or add a $ anchor to the pattern: ZIP_RE = re.compile(r\"\\d{5}$\")",
+     "line": 10,
+     "severity": "high"
+    },
+    {
+     "claim": "STATES is a hard-coded set of 6 states; all other US states/territories raise ValueError, making normalize_address silently unusable for most addresses without any documented intent.",
+     "evidence": "STATES = {\"CA\", \"NY\", \"TX\", \"WA\", \"FL\", \"IL\"}",
+     "file": "zipcode.py",
+     "fix": "If the restriction is intentional, document it with a comment or docstring. If not, expand the set to all 50 states or remove the guard entirely.",
+     "line": 5,
+     "severity": "low"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "session.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9075,
+   "error": null,
+   "usage": {
+    "inputTokens": 15827,
+    "cachedInputTokens": 15104,
+    "outputTokens": 484
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "session.js",
+     "line": 14,
+     "claim": "The token payload is trusted without verifying its signature or expiration, allowing an attacker to forge an issuer-approved admin token.",
+     "evidence": "  const claims = jwt.decode(token);",
+     "fix": "Use jwt.verify(token, SECRET, { issuer: ISSUER }) and reject verification errors before assigning req.user."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "session.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 50549,
+   "error": null,
+   "usage": {
+    "inputTokens": 15292,
+    "cachedInputTokens": 0,
+    "outputTokens": 27327
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "jwt.decode decodes the token without signature or expiration verification, allowing clients to forge tokens and bypass authentication.",
+     "evidence": "  const claims = jwt.decode(token);",
+     "file": "session.js",
+     "fix": "Replace jwt.decode with jwt.verify(token, SECRET, { issuer: ISSUER }) inside a try/catch block, returning 401 if verification throws.",
+     "line": 14,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "session.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 103187,
+   "error": null,
+   "usage": {
+    "inputTokens": 286224,
+    "cachedInputTokens": 0,
+    "outputTokens": 17051
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "JWT token is decoded without signature verification, allowing forged or expired tokens to be accepted.",
+     "evidence": "const claims = jwt.decode(token);",
+     "file": "session.js",
+     "fix": "Replace the unsafe `jwt.decode` with `jwt.verify(token, SECRET, { issuer: ISSUER })` and handle verification errors.",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "The secret used for signing tokens (`process.env.JWT_SECRET`) is not checked for existence, which may lead to signing with an undefined secret.",
+     "evidence": "return jwt.sign({ sub: user.id, role: user.role }, SECRET, { issuer: ISSUER, expiresIn: '1h' });",
+     "file": "session.js",
+     "fix": "Add a runtime check that `SECRET` is defined and throw a clear error if it is missing before signing.",
+     "line": 7,
+     "severity": "medium"
+    },
+    {
+     "claim": "Manual issuer check is redundant after proper token verification and could be bypassed if verification is not performed.",
+     "evidence": "if (!claims || claims.iss !== ISSUER) {",
+     "file": "session.js",
+     "fix": "After switching to `jwt.verify`, remove the manual `iss` check; `jwt.verify` will enforce the issuer automatically.",
+     "line": 15,
+     "severity": "low"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "session.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 25899,
+   "error": null,
+   "usage": {
+    "inputTokens": 6470,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1074
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "jwt.decode() does not verify the JWT signature, expiry, or any other claim. Any attacker can craft a token with an arbitrary role ('admin') and it will be accepted.",
+     "evidence": "  const claims = jwt.decode(token);",
+     "file": "session.js",
+     "fix": "Replace with jwt.verify(token, SECRET, { issuer: ISSUER }) wrapped in a try/catch. This performs cryptographic signature verification and validates exp, iss, etc.",
+     "line": 15,
+     "severity": "high"
+    },
+    {
+     "claim": "SECRET is read once at module load time. If JWT_SECRET is not set, SECRET is undefined; jwt.sign() will throw and jwt.verify() (once added) will also throw or accept unsigned tokens depending on the library version.",
+     "evidence": "const SECRET = process.env.JWT_SECRET;",
+     "file": "session.js",
+     "fix": "Guard at startup: if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET env var is required'); Then assign SECRET.",
+     "line": 3,
+     "severity": "high"
+    },
+    {
+     "claim": "The issuer check is security theatre while decode() is in use: the iss field is attacker-controlled because the token was never cryptographically verified.",
+     "evidence": "  if (!claims || claims.iss !== ISSUER) {",
+     "file": "session.js",
+     "fix": "This check becomes meaningful only after the jwt.decode → jwt.verify fix above; no separate change needed once verify() is used with the issuer option.",
+     "line": 16,
+     "severity": "medium"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "leaderboard.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 8215,
+   "error": null,
+   "usage": {
+    "inputTokens": 15761,
+    "cachedInputTokens": 0,
+    "outputTokens": 366
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "leaderboard.js",
+     "line": 6,
+     "claim": "Default Array.sort compares values as strings, so scores such as 10 and 2 are ordered incorrectly before reversal.",
+     "evidence": "  scores.sort();",
+     "fix": "Use a numeric comparator: `scores.sort((a, b) => b - a);` and remove the subsequent `reverse()`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "leaderboard.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 60214,
+   "error": null,
+   "usage": {
+    "inputTokens": 15222,
+    "cachedInputTokens": 0,
+    "outputTokens": 41125
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Array.prototype.sort() converts elements to strings and sorts lexicographically by default, ordering numeric scores incorrectly.",
+     "evidence": "  scores.sort();",
+     "file": "leaderboard.js",
+     "fix": "Sort numerically descending: replace scores.sort() and scores.reverse() with scores.sort((a, b) => b - a);.",
+     "line": 5,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "leaderboard.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 42236,
+   "error": null,
+   "usage": {
+    "inputTokens": 131678,
+    "cachedInputTokens": 0,
+    "outputTokens": 6055
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Array.sort without a comparator performs lexical string sorting, causing numeric scores to be ordered incorrectly in topScores.",
+     "evidence": "scores.sort();",
+     "file": "leaderboard.js",
+     "fix": "Replace the default lexical sort with a numeric descending comparator and remove the unnecessary reverse. For example:\n```js\nscores.sort((a, b) => b - a);\n// remove the next line: scores.reverse();\n```",
+     "line": 5,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "leaderboard.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 20438,
+   "error": null,
+   "usage": {
+    "inputTokens": 6398,
+    "cachedInputTokens": 10936,
+    "outputTokens": 695
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "scores.sort() uses the default lexicographic comparator on numbers; e.g. [100, 9, 20] sorts to [100, 20, 9] instead of [100, 20, 9] — actually to [\"100\",\"20\",\"9\"] string order, yielding 9 as the top score after reverse.",
+     "evidence": "  scores.sort();",
+     "file": "leaderboard.js",
+     "fix": "Replace with a numeric comparator: scores.sort((a, b) => b - a); then remove the scores.reverse() call, or keep reverse and use scores.sort((a, b) => a - b).",
+     "line": 4,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "due-date.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 12617,
+   "error": null,
+   "usage": {
+    "inputTokens": 16534,
+    "cachedInputTokens": 11008,
+    "outputTokens": 1269
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "due-date.js",
+     "line": 5,
+     "claim": "Parsing a date-only ISO string as `Date` uses UTC, but output is formatted in local time, so valid inputs can shift to the prior day in negative-offset time zones.",
+     "evidence": "  return new Date(isoDate);",
+     "fix": "Parse numeric year/month/day components into a local date, or format consistently in UTC."
+    },
+    {
+     "severity": "medium",
+     "file": "due-date.js",
+     "line": 4,
+     "claim": "The validation accepts impossible calendar dates such as `2026-02-31`, which JavaScript normalizes instead of rejecting.",
+     "evidence": "  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(isoDate)) throw new Error(`bad date: ${isoDate}`);",
+     "fix": "After parsing components, verify the resulting year, month, and day equal the input before returning the date."
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "due-date.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 71610,
+   "error": null,
+   "usage": {
+    "inputTokens": 15284,
+    "cachedInputTokens": 0,
+    "outputTokens": 52513
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "d.getDay() inspects the local timezone day of the week rather than UTC, causing weekdays to be misclassified as weekend days in non-UTC timezones.",
+     "evidence": "    const weekday = d.getDay();",
+     "file": "due-date.js",
+     "fix": "const weekday = d.getUTCDay();",
+     "line": 13,
+     "severity": "high"
+    },
+    {
+     "claim": "formatDay uses local time accessors instead of UTC accessors, causing dates parsed from UTC to shift backward by a day in timezones west of UTC.",
+     "evidence": "  const y = d.getFullYear();",
+     "file": "due-date.js",
+     "fix": "Use d.getUTCFullYear(), d.getUTCMonth() + 1, and d.getUTCDate() to format the UTC date.",
+     "line": 20,
+     "severity": "high"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "due-date.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 59125,
+   "error": null,
+   "usage": {
+    "inputTokens": 160993,
+    "cachedInputTokens": 0,
+    "outputTokens": 8666
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Missing validation for invalid calendar dates after regex check",
+     "evidence": "if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(isoDate)) throw new Error(`bad date: ${isoDate}`);",
+     "file": "due-date.js",
+     "fix": "Validate the constructed Date before returning it. Replace the current return statement with:\n```js\nconst d = new Date(isoDate);\nif (isNaN(d)) throw new Error(`invalid calendar date: ${isoDate}`);\nreturn d;\n```",
+     "line": 4,
+     "severity": "high"
+    },
+    {
+     "claim": "addBusinessDays does not handle negative business day counts",
+     "evidence": "while (added < days) {",
+     "file": "due-date.js",
+     "fix": "Add explicit check for negative `days` at the start of the function:\n```js\nif (days < 0) throw new Error('businessDays must be non‑negative');\n```",
+     "line": 11,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "due-date.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 36636,
+   "error": null,
+   "usage": {
+    "inputTokens": 6487,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1983
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "`new Date(isoDate)` parses a date-only ISO string as UTC midnight, but `getDay()`, `getDate()`, `getFullYear()` and `getMonth()` in `addBusinessDays`/`formatDay` all read local time. In any negative-offset timezone (e.g. UTC-5) the date object is already on the *previous* calendar day the moment it is created, so every weekday check and every formatted output is one day wrong.",
+     "evidence": "  return new Date(isoDate);",
+     "file": "due-date.js",
+     "fix": "Parse by splitting the string: `const [y,m,d] = isoDate.split('-').map(Number); return new Date(y, m-1, d);` — this constructs midnight in local time, keeping all subsequent local-time reads correct.",
+     "line": 5,
+     "severity": "high"
+    },
+    {
+     "claim": "Adding exactly `DAY_MS` (24 × 3600 × 1000 ms) per iteration is wrong on DST transition days. When a clock springs forward the day is only 23 h; adding 24 h lands at 01:00 the *next* day. Subsequent `getDay()` calls then evaluate the wrong calendar day, miscounting or skipping business days.",
+     "evidence": "    d.setTime(d.getTime() + DAY_MS);",
+     "file": "due-date.js",
+     "fix": "Advance by calendar day, not by milliseconds: `d.setDate(d.getDate() + 1);` — `setDate` normalises across DST boundaries correctly.",
+     "line": 12,
+     "severity": "high"
+    },
+    {
+     "claim": "When `days` is 0 or negative the while-loop body never executes and the function silently returns the input date, even if it falls on a Saturday or Sunday. Callers requesting 0 added business days on a weekend get a weekend date back.",
+     "evidence": "  while (added < days) {",
+     "file": "due-date.js",
+     "fix": "Validate at entry: `if (!Number.isInteger(days) || days < 0) throw new Error('days must be a non-negative integer');` and document whether 0 means \"same day if a business day\" or is disallowed.",
+     "line": 11,
+     "severity": "medium"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "inventory.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9242,
+   "error": null,
+   "usage": {
+    "inputTokens": 16427,
+    "cachedInputTokens": 11008,
+    "outputTokens": 456
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "medium",
+     "file": "inventory.py",
+     "line": 6,
+     "claim": "An empty `levels` list raises ZeroDivisionError, and `reorder_list` accepts histories that may be empty.",
+     "evidence": "    return sum(levels) / len(levels)",
+     "fix": "Define empty-history behavior explicitly; e.g., raise ValueError with a clear message or have reorder_list skip empty histories before calling average_stock."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "inventory.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 58128,
+   "error": null,
+   "usage": {
+    "inputTokens": 15166,
+    "cachedInputTokens": 0,
+    "outputTokens": 41261
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "average_stock raises ZeroDivisionError when levels is empty because len(levels) is zero.",
+     "evidence": "    return sum(levels) / len(levels)",
+     "file": "inventory.py",
+     "fix": "return sum(levels) / len(levels) if levels else 0.0",
+     "line": 6,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "inventory.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 30021,
+   "error": null,
+   "usage": {
+    "inputTokens": 102131,
+    "cachedInputTokens": 0,
+    "outputTokens": 5043
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "evidence": "return sum(levels) / len(levels)",
+     "line": 6,
+     "fix": "Add a guard for empty input before dividing, e.g.:\n```python\nif not levels:\n    return 0.0\nreturn sum(levels) / len(levels)\n```"
+    }
+   ],
+   "verification": "0/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "inventory.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 16521,
+   "error": null,
+   "usage": {
+    "inputTokens": 6345,
+    "cachedInputTokens": 10936,
+    "outputTokens": 693
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "`average_stock` raises `ZeroDivisionError` when `levels` is an empty list, and `reorder_list` passes history lists from the caller directly, so a single SKU with no recorded history crashes the whole reorder computation.",
+     "evidence": "    return sum(levels) / len(levels)",
+     "file": "inventory.py",
+     "fix": "Guard at the top of `average_stock`:\n```python\ndef average_stock(levels: List[int]) -> float:\n    if not levels:\n        return 0.0  # or raise ValueError, depending on desired semantics\n    return sum(levels) / len(levels)\n```",
+     "line": 6,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "slugify.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 12783,
+   "error": null,
+   "usage": {
+    "inputTokens": 15747,
+    "cachedInputTokens": 15104,
+    "outputTokens": 856
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "severity": "medium",
+     "file": "slugify.js",
+     "line": 16,
+     "claim": "A colliding 80-character base produces a slug longer than MAX_LENGTH (for example, 82 characters for the `-2` suffix).",
+     "evidence": "  return `${base}-${n}`;",
+     "fix": "Reserve space for `-${n}` and truncate `base` before concatenating the suffix."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "slugify.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 121821,
+   "error": null,
+   "usage": {
+    "inputTokens": 15181,
+    "cachedInputTokens": 0,
+    "outputTokens": 85532
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "String(title) converts null and undefined into literal strings \"null\" and \"undefined\", producing invalid slugs and defeating the 'item' fallback in uniqueSlug.",
+     "evidence": "  return String(title)",
+     "file": "slugify.js",
+     "fix": "if (title == null) return '';",
+     "line": 4,
+     "severity": "medium"
+    },
+    {
+     "claim": "uniqueSlug appends numeric suffixes without trimming base, causing collision-resolution slugs to exceed MAX_LENGTH.",
+     "evidence": "  return `${base}-${n}`;",
+     "file": "slugify.js",
+     "fix": "const suffix = `-${n}`; return `${base.slice(0, MAX_LENGTH - suffix.length).replace(/-+$/g, '')}${suffix}`;",
+     "line": 19,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "slugify.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 17098,
+   "error": null,
+   "usage": {
+    "inputTokens": 50245,
+    "cachedInputTokens": 0,
+    "outputTokens": 2343
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 1,
+   "file": "slugify.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 45826,
+   "error": null,
+   "usage": {
+    "inputTokens": 6376,
+    "cachedInputTokens": 10936,
+    "outputTokens": 2433
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "uniqueSlug never adds the chosen slug to `taken`, so two successive calls with the same base and the same Set both return the same slug, defeating the uniqueness guarantee.",
+     "evidence": "  if (!taken.has(base)) return base;",
+     "file": "slugify.js",
+     "fix": "The caller must add the returned value to `taken` before the next call, or the function itself should do `taken.add(result); return result;` for both return paths.",
+     "line": 13,
+     "severity": "high"
+    },
+    {
+     "claim": "String(null) === 'null' and String(undefined) === 'undefined', so the `|| 'item'` fallback in uniqueSlug is never reached for those inputs; they silently produce slugs 'null' and 'undefined'.",
+     "evidence": "  const base = slugify(title) || 'item';",
+     "file": "slugify.js",
+     "fix": "Guard at the top of slugify: `if (title == null) return '';` so null/undefined both collapse to the empty string and hit the fallback.",
+     "line": 12,
+     "severity": "medium"
+    },
+    {
+     "claim": "The combining-character strip range U+0300–U+036F misses supplemental combining blocks (U+1DC0–U+1DFF, U+20D0–U+20FF, U+FE20–U+FE2F), leaving those marks in the slug after NFKD normalization.",
+     "evidence": "    .replace(/[̀-ͯ]/g, '')",
+     "file": "slugify.js",
+     "fix": "Extend the pattern or use the Unicode property escape: `.replace(/\\p{M}/gu, '')` (requires Node ≥ 10 with the `u` flag).",
+     "line": 6,
+     "severity": "low"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "chunk.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 4947,
+   "error": null,
+   "usage": {
+    "inputTokens": 16405,
+    "cachedInputTokens": 14080,
+    "outputTokens": 97
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 1,
+   "file": "chunk.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 49691,
+   "error": null,
+   "usage": {
+    "inputTokens": 15145,
+    "cachedInputTokens": 0,
+    "outputTokens": 35331
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 1,
+   "file": "chunk.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 14910,
+   "error": null,
+   "usage": {
+    "inputTokens": 37514,
+    "cachedInputTokens": 0,
+    "outputTokens": 2105
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 1,
+   "file": "chunk.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 15582,
+   "error": null,
+   "usage": {
+    "inputTokens": 6327,
+    "cachedInputTokens": 10936,
+    "outputTokens": 551
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "The function yields `batch` and then resets it with `batch = []`, but the caller still holds a reference to the same list object that was yielded. Any in-place mutation of that object after the yield would corrupt the caller's data. Here the reset uses rebinding (`batch = []`), so there is no in-place mutation — but the design is fragile: a future maintainer might switch to `batch.clear()` (a common optimisation) which *would* corrupt all previously yielded lists. The safe, idiomatic fix is to yield a copy.",
+     "evidence": "            yield batch",
+     "file": "chunk.py",
+     "fix": "yield `list(batch)` (or `batch.copy()`) so each yielded chunk is an independent snapshot: `yield batch.copy()`. Then `batch = []` or `batch.clear()` both become safe.",
+     "line": 11,
+     "severity": "medium"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "debounce.ts",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 7969,
+   "error": null,
+   "usage": {
+    "inputTokens": 15744,
+    "cachedInputTokens": 15104,
+    "outputTokens": 322
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 1,
+   "file": "debounce.ts",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 70687,
+   "error": null,
+   "usage": {
+    "inputTokens": 15172,
+    "cachedInputTokens": 0,
+    "outputTokens": 47037
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 1,
+   "file": "debounce.ts",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 139221,
+   "error": null,
+   "usage": {
+    "inputTokens": 424013,
+    "cachedInputTokens": 0,
+    "outputTokens": 23708
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "The debounced function is defined as an arrow function, causing it to capture the surrounding lexical `this` and lose the caller's `this` binding.",
+     "evidence": "const debounced = (...args: A) => {",
+     "file": "debounce.ts",
+     "fix": "Replace the arrow function with a regular function to preserve `this`, e.g., `function debounced(...args: A) { … }`.",
+     "line": 5,
+     "severity": "high"
+    },
+    {
+     "claim": "The original function `fn` is invoked without preserving its `this` context, which can break methods that rely on `this`.",
+     "evidence": "fn(...callArgs);",
+     "file": "debounce.ts",
+     "fix": "Invoke the original function using its original context: `fn.apply(this, callArgs);`.",
+     "line": 12,
+     "severity": "high"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 1,
+   "file": "debounce.ts",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 11701,
+   "error": null,
+   "usage": {
+    "inputTokens": 6359,
+    "cachedInputTokens": 10936,
+    "outputTokens": 371
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "pagination.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 8708,
+   "error": null,
+   "usage": {
+    "inputTokens": 16500,
+    "cachedInputTokens": 11008,
+    "outputTokens": 388
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "pagination.js",
+     "line": 19,
+     "claim": "The inclusive loop bound appends `items[end]`, even though `end` is the exclusive slice boundary; this yields an extra item (usually `undefined`) on each page.",
+     "evidence": "  for (let i = start; i <= end; i++) {",
+     "fix": "Use an exclusive bound: `for (let i = start; i < end; i++) {`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "pagination.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 56994,
+   "error": null,
+   "usage": {
+    "inputTokens": 15266,
+    "cachedInputTokens": 0,
+    "outputTokens": 40521
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The loop condition i <= end causes an off-by-one error that yields an extra element per page, duplicates boundary items across consecutive pages, and appends undefined when end equals items.length.",
+     "evidence": "  for (let i = start; i <= end; i++) {",
+     "file": "pagination.js",
+     "fix": "Change the loop condition to `i < end` or replace the loop with `items.slice(start, end)`.",
+     "line": 19,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "pagination.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 22365,
+   "error": null,
+   "usage": {
+    "inputTokens": 65225,
+    "cachedInputTokens": 0,
+    "outputTokens": 3041
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "pagination.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 17730,
+   "error": null,
+   "usage": {
+    "inputTokens": 6446,
+    "cachedInputTokens": 10936,
+    "outputTokens": 748
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Loop uses `i <= end` instead of `i < end`. Because `end` is already the exclusive upper bound (computed as `Math.min(start + pageSize, items.length)`), this reads `items[end]` — which is `undefined` — and pushes it into `pageItems`. Every page gets one extra `undefined` element, and the last page performs an out-of-bounds array read.",
+     "evidence": "  for (let i = start; i <= end; i++) {",
+     "file": "pagination.js",
+     "fix": "Change the condition to `i < end`:\n```js\nfor (let i = start; i < end; i++) {\n```",
+     "line": 20,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "fetch-user.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 5066,
+   "error": null,
+   "usage": {
+    "inputTokens": 15769,
+    "cachedInputTokens": 15104,
+    "outputTokens": 282
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "fetch-user.js",
+     "line": 13,
+     "claim": "`fetch` is not awaited, so `res` is a Promise; `res.ok` is undefined and the error path then calls a nonexistent `res.text()` method.",
+     "evidence": "  const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "fix": "Await the request: `const res = await fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, { ... });`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "fetch-user.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 51876,
+   "error": null,
+   "usage": {
+    "inputTokens": 15225,
+    "cachedInputTokens": 0,
+    "outputTokens": 35379
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The fetch call is not awaited, so res is a Promise rather than a Response.",
+     "evidence": "  const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "file": "fetch-user.js",
+     "fix": "  const res = await fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "line": 13,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "fetch-user.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 72362,
+   "error": null,
+   "usage": {
+    "inputTokens": 211875,
+    "cachedInputTokens": 0,
+    "outputTokens": 11760
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "Missing await on fetch, causing res to be a Promise and subsequent .ok, .text, .json calls will fail.",
+     "evidence": "const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "file": "fetch-user.js",
+     "fix": "Add await before fetch: `const res = await fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, { headers: { accept: 'application/json' } });` and also await the json return: `return await res.json();`",
+     "line": 13,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "fetch-user.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 23339,
+   "error": null,
+   "usage": {
+    "inputTokens": 6396,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1076
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "`fetch(...)` is not awaited, so `res` is a Promise, not a Response. `res.ok` is `undefined` (falsy), so `!res.ok` is always `true`, and the code immediately tries `await res.text()` on a Promise object — which throws a TypeError. `getUser` never returns a user; it always throws.",
+     "evidence": "  const res = fetch(`${API_BASE}/users/${encodeURIComponent(id)}`, {",
+     "file": "fetch-user.js",
+     "fix": "Add `await`: `const res = await fetch(\\`${API_BASE}/users/${encodeURIComponent(id)}\\`, { ... });`",
+     "line": 13,
+     "severity": "high"
+    },
+    {
+     "claim": "`getUsers` passes its `ids` argument directly to `new Set()` with no null/undefined guard. If `ids` is `null` or `undefined`, `new Set(ids)` throws a TypeError with no useful message.",
+     "evidence": "  const unique = [...new Set(ids)];",
+     "file": "fetch-user.js",
+     "fix": "Add a guard at the top of `getUsers`: `if (!Array.isArray(ids)) throw new TypeError('ids must be an array');`",
+     "line": 22,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "orders.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 6439,
+   "error": null,
+   "usage": {
+    "inputTokens": 15833,
+    "cachedInputTokens": 15104,
+    "outputTokens": 167
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "orders.py",
+     "line": 20,
+     "claim": "Interpolating `customer` directly into SQL allows crafted input to alter the query or bypass the customer filter.",
+     "evidence": "    query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "fix": "Use a placeholder for `customer` and include it in the parameters, e.g. `query = \"SELECT id, customer, total_cents, status FROM orders WHERE customer = ?\"` and `params = [customer]`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "orders.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 43083,
+   "error": null,
+   "usage": {
+    "inputTokens": 15285,
+    "cachedInputTokens": 0,
+    "outputTokens": 26589
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Direct f-string interpolation of customer into the SQL query introduces a SQL injection vulnerability and breaks on customer names containing quotes.",
+     "evidence": "    query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "file": "orders.py",
+     "fix": "query = \"SELECT id, customer, total_cents, status FROM orders WHERE customer = ?\"\nparams: list = [customer]",
+     "line": 21,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "orders.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 63562,
+   "error": null,
+   "usage": {
+    "inputTokens": 187595,
+    "cachedInputTokens": 0,
+    "outputTokens": 9816
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "line": 21,
+     "evidence": "query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "fix": "Replace the f‑string interpolation with a parameter placeholder and include the customer value in the parameters list, e.g.:\n```python\nquery = \"SELECT id, customer, total_cents, status FROM orders WHERE customer = ?\"\nparams = [customer]\n``` then keep the existing status handling (append status to `params` if provided).",
+     "description": "SQL injection vulnerability: directly interpolating `customer` into the SQL string allows malicious input to modify the query."
+    }
+   ],
+   "verification": "0/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "orders.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 18562,
+   "error": null,
+   "usage": {
+    "inputTokens": 6450,
+    "cachedInputTokens": 10936,
+    "outputTokens": 841
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The `customer` parameter is interpolated directly into the SQL string with an f-string, enabling SQL injection. An attacker can supply a value like `' OR '1'='1` to read all rows, or more destructive payloads.",
+     "evidence": "    query = f\"SELECT id, customer, total_cents, status FROM orders WHERE customer = '{customer}'\"",
+     "file": "orders.py",
+     "fix": "Use a parameterised placeholder for customer just like status already is:\n```python\nquery = \"SELECT id, customer, total_cents, status FROM orders WHERE customer = ?\"\nparams: list = [customer]\n```",
+     "line": 21,
+     "severity": "high"
+    },
+    {
+     "claim": "mark_shipped commits unconditionally but never checks whether any row was actually updated (cursor.rowcount). If order_id does not exist, the function silently succeeds.",
+     "evidence": "    conn.execute(\"UPDATE orders SET status = 'shipped' WHERE id = ?\", (order_id,))",
+     "file": "orders.py",
+     "fix": "Capture the cursor and assert rowcount > 0, raising an appropriate error (e.g. ValueError or a domain-specific exception) when the order is not found.",
+     "line": 31,
+     "severity": "medium"
+    },
+    {
+     "claim": "mark_shipped does not guard against overwriting a status other than 'pending' (e.g. 'cancelled', 'refunded'). There is no optimistic-lock or status precondition.",
+     "evidence": "    conn.execute(\"UPDATE orders SET status = 'shipped' WHERE id = ?\", (order_id,))",
+     "file": "orders.py",
+     "fix": "Add `AND status = 'pending'` (or whatever the valid predecessor state is) to the WHERE clause, and check rowcount to detect the conflict.",
+     "line": 30,
+     "severity": "low"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "pricing.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9831,
+   "error": null,
+   "usage": {
+    "inputTokens": 16501,
+    "cachedInputTokens": 14080,
+    "outputTokens": 447
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "pricing.js",
+     "line": 16,
+     "claim": "`pct` is documented as a 0–100 percentage but is subtracted directly from 1, so any discount above 1% yields an incorrect multiplier.",
+     "evidence": "  const discounted = priceCents * (1 - pct);",
+     "fix": "Divide the percentage by 100: `const discounted = priceCents * (1 - pct / 100);`"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "pricing.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 28925,
+   "error": null,
+   "usage": {
+    "inputTokens": 15272,
+    "cachedInputTokens": 0,
+    "outputTokens": 20049
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The discount percentage is not divided by 100, resulting in negative discounted prices for any percentage discount greater than 1.",
+     "evidence": "  const discounted = priceCents * (1 - pct);",
+     "file": "pricing.js",
+     "fix": "const discounted = priceCents * (1 - pct / 100);",
+     "line": 15,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "pricing.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 103411,
+   "error": null,
+   "usage": {
+    "inputTokens": 308359,
+    "cachedInputTokens": 0,
+    "outputTokens": 15051
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "Discount calculation uses raw percentOff value instead of dividing by 100, leading to incorrect discount.",
+     "evidence": "const discounted = priceCents * (1 - pct);",
+     "file": "pricing.js",
+     "fix": "Change to `const discounted = priceCents * (1 - pct / 100);`",
+     "line": 15,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "pricing.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 15367,
+   "error": null,
+   "usage": {
+    "inputTokens": 6443,
+    "cachedInputTokens": 10936,
+    "outputTokens": 653
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "percentOff is not divided by 100 before being subtracted from 1, so a 10% discount computes 1-10 = -9 and yields a price that is -9× the original instead of 0.9×.",
+     "evidence": "  const discounted = priceCents * (1 - pct);",
+     "file": "pricing.js",
+     "fix": "Divide pct by 100: `const discounted = priceCents * (1 - pct / 100);`",
+     "line": 15,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "download.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 12391,
+   "error": null,
+   "usage": {
+    "inputTokens": 15816,
+    "cachedInputTokens": 15104,
+    "outputTokens": 715
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "download.js",
+     "line": 16,
+     "claim": "An attacker can supply traversal segments such as `../../secret` to make `filePath` point outside `UPLOAD_DIR`, then download any readable regular file.",
+     "evidence": "  const filePath = path.join(UPLOAD_DIR, name);",
+     "fix": "Reject names that are not a single basename, or resolve the path and verify it remains within `UPLOAD_DIR` before calling `stat` or `download`."
+    },
+    {
+     "severity": "medium",
+     "file": "download.js",
+     "line": 12,
+     "claim": "Hidden files are omitted from listing but remain directly downloadable by name, exposing files the route appears intended to hide.",
+     "evidence": "    res.json({ files: names.filter((n) => !n.startsWith('.')) });",
+     "fix": "Apply the same hidden-name rejection in the download route before resolving the path."
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "download.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 44946,
+   "error": null,
+   "usage": {
+    "inputTokens": 30734,
+    "cachedInputTokens": 0,
+    "outputTokens": 9855
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "User-controlled filename parameter allows path traversal outside UPLOAD_DIR via relative path sequences.",
+     "evidence": "  const filePath = path.join(UPLOAD_DIR, name);",
+     "file": "download.js",
+     "fix": "const safePath = path.resolve(UPLOAD_DIR, name); if (!safePath.startsWith(UPLOAD_DIR + path.sep)) return res.status(400).json({ error: 'invalid filename' });",
+     "line": 18,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "download.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 17868,
+   "error": null,
+   "usage": {
+    "inputTokens": 38271,
+    "cachedInputTokens": 0,
+    "outputTokens": 2497
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Potential directory traversal vulnerability due to unchecked file path.",
+     "evidence": "const filePath = path.join(UPLOAD_DIR, name);",
+     "file": "download.js",
+     "fix": "Validate that the resolved file path is inside the upload directory before downloading, e.g.:\n```js\nconst resolvedPath = path.resolve(filePath);\nif (!resolvedPath.startsWith(UPLOAD_DIR)) {\n  return res.status(400).json({ error: 'invalid file path' });\n}\n```",
+     "line": 18,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "download.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 25854,
+   "error": null,
+   "usage": {
+    "inputTokens": 6453,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1211
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "User-supplied `name` is joined with UPLOAD_DIR without verifying the resolved path stays inside UPLOAD_DIR, enabling path traversal (e.g. name=../../etc/passwd).",
+     "evidence": "  const filePath = path.join(UPLOAD_DIR, name);",
+     "file": "download.js",
+     "fix": "After joining, assert containment:\n```js\nconst filePath = path.resolve(UPLOAD_DIR, name);\nif (!filePath.startsWith(UPLOAD_DIR + path.sep) && filePath !== UPLOAD_DIR)\n  return res.status(400).json({ error: 'invalid name' });\n```",
+     "line": 19,
+     "severity": "high"
+    },
+    {
+     "claim": "`path.basename(filePath)` is passed as the download filename but is redundant and misleading—`res.download` already defaults to the basename. More importantly, after fixing the traversal bug the filename sent to the client should be the raw `name` (or just omitted), not re-derived from the resolved path.",
+     "evidence": "    res.download(filePath, path.basename(filePath));",
+     "file": "download.js",
+     "fix": "Use `res.download(filePath, name)` (or simply `res.download(filePath)`) so the filename is the original, user-visible name and not an artifact of path resolution.",
+     "line": 22,
+     "severity": "low"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "retry.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9027,
+   "error": null,
+   "usage": {
+    "inputTokens": 15728,
+    "cachedInputTokens": 15104,
+    "outputTokens": 480
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "retry.py",
+     "line": 21,
+     "claim": "The unconditional continue makes the subsequent attempts-limit check unreachable, so a function that always raises TransientError never gives up.",
+     "evidence": "            continue",
+     "fix": "Check `if attempts >= MAX_ATTEMPTS:` inside the `except` block before sleeping and continuing."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "retry.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 54224,
+   "error": null,
+   "usage": {
+    "inputTokens": 15154,
+    "cachedInputTokens": 0,
+    "outputTokens": 37820
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The retry limit check is unreachable because the except block unconditionally executes continue, causing an infinite retry loop on TransientError.",
+     "evidence": "        if attempts >= MAX_ATTEMPTS:",
+     "file": "retry.py",
+     "fix": "Move the check `if attempts >= MAX_ATTEMPTS:` into the `except TransientError:` block before sleeping, and remove `continue`.",
+     "line": 25,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "retry.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 31035,
+   "error": null,
+   "usage": {
+    "inputTokens": 89652,
+    "cachedInputTokens": 0,
+    "outputTokens": 4574
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "retry.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 25319,
+   "error": null,
+   "usage": {
+    "inputTokens": 6327,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1338
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "`continue` in the except block makes the MAX_ATTEMPTS guard below it unreachable; the function loops forever instead of giving up.",
+     "evidence": "            continue",
+     "file": "retry.py",
+     "fix": "Remove the `continue` (it is redundant at the end of an except block) and move the MAX_ATTEMPTS check inside the except block, before sleeping:\n```python\nexcept TransientError:\n    attempts += 1\n    if attempts >= MAX_ATTEMPTS:\n        raise RuntimeError(f\"gave up after {attempts} attempts\")\n    delay = BASE_DELAY * (2 ** attempts) + random.uniform(0, 0.1)\n    time.sleep(delay)\n```",
+     "line": 26,
+     "severity": "high"
+    },
+    {
+     "claim": "The MAX_ATTEMPTS guard is dead code: control never reaches this line because the except block always hits `continue` first.",
+     "evidence": "        if attempts >= MAX_ATTEMPTS:",
+     "file": "retry.py",
+     "fix": "Delete lines 27-28 and replace with the guard moved inside the except block (see fix above).",
+     "line": 27,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "cache.ts",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 10238,
+   "error": null,
+   "usage": {
+    "inputTokens": 15783,
+    "cachedInputTokens": 15104,
+    "outputTokens": 560
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "cache.ts",
+     "line": 15,
+     "claim": "The expiration check is reversed: unexpired entries are deleted while expired entries remain readable.",
+     "evidence": "    if (entry.expires > Date.now()) {",
+     "fix": "Change the condition to `if (entry.expires <= Date.now()) {`."
+    },
+    {
+     "severity": "medium",
+     "file": "cache.ts",
+     "line": 24,
+     "claim": "Updating an existing key while the cache is full evicts a different entry unnecessarily, reducing the cache contents.",
+     "evidence": "    if (this.entries.size >= this.maxEntries) {",
+     "fix": "Only evict when the key is not already present: `if (!this.entries.has(key) && this.entries.size >= this.maxEntries) { ... }`."
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "cache.ts",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 54149,
+   "error": null,
+   "usage": {
+    "inputTokens": 15254,
+    "cachedInputTokens": 0,
+    "outputTokens": 36778
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The expiration check is inverted, deleting valid unexpired entries and returning undefined while allowing expired entries to be returned.",
+     "evidence": "    if (entry.expires > Date.now()) {",
+     "file": "cache.ts",
+     "fix": "if (entry.expires <= Date.now()) {",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "Updating an existing key when the cache is at capacity evicts an unrelated oldest entry and shrinks the cache below maxEntries.",
+     "evidence": "    if (this.entries.size >= this.maxEntries) {",
+     "file": "cache.ts",
+     "fix": "if (!this.entries.has(key) && this.entries.size >= this.maxEntries) {",
+     "line": 22,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "cache.ts",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 133001,
+   "error": null,
+   "usage": {
+    "inputTokens": 484968,
+    "cachedInputTokens": 0,
+    "outputTokens": 22694
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "The get method deletes entries that have not yet expired because it uses '>' instead of '<='.",
+     "evidence": "if (entry.expires > Date.now()) {",
+     "file": "cache.ts",
+     "fix": "Replace the comparison with '<=' (or '<') so that only expired entries are deleted, e.g., `if (entry.expires <= Date.now()) {`.",
+     "line": 14,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "cache.ts",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 21259,
+   "error": null,
+   "usage": {
+    "inputTokens": 6423,
+    "cachedInputTokens": 10936,
+    "outputTokens": 914
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Expiry predicate is inverted: `entry.expires > Date.now()` is true when the entry is still valid, so valid entries are deleted and stale entries are returned.",
+     "evidence": "    if (entry.expires > Date.now()) {",
+     "file": "cache.ts",
+     "fix": "Flip the operator: `if (entry.expires < Date.now()) { this.entries.delete(key); return undefined; }`",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "The eviction strategy deletes the Map's first-inserted key regardless of TTL, so a still-valid entry may be evicted before expired ones have been removed, causing silent data loss under load.",
+     "evidence": "      const oldest = this.entries.keys().next().value as K;",
+     "file": "cache.ts",
+     "fix": "Before evicting by insertion order, first purge any already-expired entries; only fall back to oldest-inserted eviction if the map is still at capacity after purging.",
+     "line": 21,
+     "severity": "medium"
+    },
+    {
+     "claim": "`size` counts expired entries that have not yet been lazily removed, so callers cannot rely on it as an accurate count of live entries.",
+     "evidence": "    return this.entries.size;",
+     "file": "cache.ts",
+     "fix": "Document that `size` is an upper bound and may include expired entries, or actively filter them out before returning the count.",
+     "line": 29,
+     "severity": "low"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "zipcode.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 6593,
+   "error": null,
+   "usage": {
+    "inputTokens": 15779,
+    "cachedInputTokens": 15104,
+    "outputTokens": 320
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "zipcode.py",
+     "line": 10,
+     "claim": "Using `match` with an unanchored pattern accepts ZIP codes longer than five digits or containing trailing characters, then returns them unchanged.",
+     "evidence": "    if not ZIP_RE.match(value):",
+     "fix": "Require an exact five-character ASCII-digit match, e.g. `ZIP_RE = re.compile(r\"[0-9]{5}\")` and `if not ZIP_RE.fullmatch(value):`."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "zipcode.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 103355,
+   "error": null,
+   "usage": {
+    "inputTokens": 15229,
+    "cachedInputTokens": 0,
+    "outputTokens": 69728
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "ZIP_RE.match() only checks the start of the string, allowing invalid ZIP codes with trailing characters or extra digits to pass validation.",
+     "evidence": "    if not ZIP_RE.match(value):",
+     "file": "zipcode.py",
+     "fix": "Use ZIP_RE.fullmatch(value) instead of ZIP_RE.match(value), or anchor ZIP_RE with ^ and $.",
+     "line": 10,
+     "severity": "medium"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "zipcode.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 20147,
+   "error": null,
+   "usage": {
+    "inputTokens": 51009,
+    "cachedInputTokens": 0,
+    "outputTokens": 3198
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "zipcode.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 22866,
+   "error": null,
+   "usage": {
+    "inputTokens": 6404,
+    "cachedInputTokens": 10936,
+    "outputTokens": 970
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "ZIP_RE only anchors at the start (re.match), not the end. Any string whose first five characters are digits passes, and the full untruncated value is returned as the zip code.",
+     "evidence": "ZIP_RE = re.compile(r\"\\d{5}\")",
+     "file": "zipcode.py",
+     "fix": "Change to a fully-anchored pattern: `ZIP_RE = re.compile(r'^\\d{5}$')`. This makes inputs like '123456' or '12345-6789' (without the extended-zip branch) return None instead of leaking through.",
+     "line": 4,
+     "severity": "high"
+    },
+    {
+     "claim": "STATES is hard-coded to six values and silently rejects every other U.S. state/territory, raising ValueError for legitimate addresses. This is a correctness hazard that will surprise callers.",
+     "evidence": "STATES = {\"CA\", \"NY\", \"TX\", \"WA\", \"FL\", \"IL\"}",
+     "file": "zipcode.py",
+     "fix": "Either expand STATES to all 50 states (and territories if needed), accept any two-letter alpha code and validate externally, or document the intentional restriction prominently so callers are not surprised.",
+     "line": 5,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "session.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 7855,
+   "error": null,
+   "usage": {
+    "inputTokens": 16523,
+    "cachedInputTokens": 0,
+    "outputTokens": 309
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "session.js",
+     "line": 14,
+     "claim": "`requireUser` decodes the JWT but never verifies its signature, so a client can forge a token with the expected issuer and an `admin` role.",
+     "evidence": "  const claims = jwt.decode(token);",
+     "fix": "Use `jwt.verify(token, SECRET, { issuer: ISSUER })` in a try/catch and return 401 when verification fails."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "session.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 37314,
+   "error": null,
+   "usage": {
+    "inputTokens": 15293,
+    "cachedInputTokens": 0,
+    "outputTokens": 19904
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "jwt.decode decodes the token without verifying its cryptographic signature or expiration, allowing forged tokens to authenticate.",
+     "evidence": "  const claims = jwt.decode(token);",
+     "file": "session.js",
+     "fix": "Use jwt.verify(token, SECRET, { issuer: ISSUER }) inside a try/catch block to validate the signature and expiration.",
+     "line": 14,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "session.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 102322,
+   "error": null,
+   "usage": {
+    "inputTokens": 375712,
+    "cachedInputTokens": 0,
+    "outputTokens": 18338
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Token is decoded without verification, allowing forged or expired tokens to be accepted.",
+     "evidence": "const claims = jwt.decode(token);",
+     "file": "session.js",
+     "fix": "Replace jwt.decode(token) with jwt.verify(token, SECRET) and handle verification errors.",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "JWT secret may be undefined if JWT_SECRET env var is not set, causing token signing to fail.",
+     "evidence": "const SECRET = process.env.JWT_SECRET;",
+     "file": "session.js",
+     "fix": "Add a runtime check that SECRET is defined before using it, e.g., if (!SECRET) throw new Error('JWT secret not configured');",
+     "line": 3,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "session.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 19616,
+   "error": null,
+   "usage": {
+    "inputTokens": 6470,
+    "cachedInputTokens": 10936,
+    "outputTokens": 773
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "jwt.decode() does not verify the token's signature or expiry; any attacker can forge arbitrary claims (sub, role, iss) and bypass authentication entirely.",
+     "evidence": "  const claims = jwt.decode(token);",
+     "file": "session.js",
+     "fix": "Replace with jwt.verify(token, SECRET, { issuer: ISSUER }) inside a try/catch. jwt.verify checks signature, expiry, and the issuer claim atomically, making the manual iss check on line 15 redundant and safe to remove.",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "SECRET is read once at module-load time; if JWT_SECRET is not set, SECRET is undefined, causing jwt.sign() to throw (jsonwebtoken ≥9 rejects undefined secret) and jwt.verify() to also throw — the app silently fails to boot correctly rather than failing loudly.",
+     "evidence": "const SECRET = process.env.JWT_SECRET;",
+     "file": "session.js",
+     "fix": "Add a startup guard: if (!SECRET) throw new Error('JWT_SECRET environment variable is required'); immediately after this line so misconfiguration is detected at boot, not at runtime.",
+     "line": 3,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "leaderboard.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 7678,
+   "error": null,
+   "usage": {
+    "inputTokens": 16457,
+    "cachedInputTokens": 14080,
+    "outputTokens": 279
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "leaderboard.js",
+     "line": 6,
+     "claim": "Default `Array.prototype.sort()` compares scores as strings rather than numerically; for example, `100` sorts before `9`, then reversal incorrectly places `9` above `100`.",
+     "evidence": "  scores.sort();",
+     "fix": "Use a numeric descending comparator and remove `reverse()`: `scores.sort((a, b) => b - a);`"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "leaderboard.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 47275,
+   "error": null,
+   "usage": {
+    "inputTokens": 15214,
+    "cachedInputTokens": 0,
+    "outputTokens": 32272
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "scores.sort() sorts elements lexicographically as strings by default, producing incorrect score ordering for numbers.",
+     "evidence": "  scores.sort();",
+     "file": "leaderboard.js",
+     "fix": "scores.sort((a, b) => b - a); and remove scores.reverse();",
+     "line": 5,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "leaderboard.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 132340,
+   "error": null,
+   "usage": {
+    "inputTokens": 452528,
+    "cachedInputTokens": 0,
+    "outputTokens": 21187
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Using `Array.prototype.sort()` without a comparator sorts numbers lexicographically, causing incorrect ordering for multi‑digit scores; the subsequent `reverse()` does not correct this and adds unnecessary overhead.",
+     "evidence": "scores.sort();\n    scores.reverse();",
+     "file": "leaderboard.js",
+     "fix": "Replace the two lines with a numeric descending sort: `scores.sort((a, b) => b - a);`",
+     "line": 5,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "leaderboard.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 14160,
+   "error": null,
+   "usage": {
+    "inputTokens": 6405,
+    "cachedInputTokens": 10936,
+    "outputTokens": 605
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "scores.sort() uses the default lexicographic comparator, not a numeric one. For inputs like [100, 9, 10] the sort produces [10, 100, 9]; after reverse() that is [9, 100, 10], so the wrong scores are returned.",
+     "evidence": "  scores.sort();",
+     "file": "leaderboard.js",
+     "fix": "Replace with a numeric comparator: scores.sort((a, b) => a - b);",
+     "line": 4,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "due-date.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 17426,
+   "error": null,
+   "usage": {
+    "inputTokens": 16534,
+    "cachedInputTokens": 14080,
+    "outputTokens": 1126
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "due-date.js",
+     "line": 5,
+     "claim": "Parsing a `YYYY-MM-DD` string with `new Date` creates a UTC-midnight instant, while the rest of the code uses local-time getters; west-of-UTC callers can start on the prior local day and calculate the wrong due date.",
+     "evidence": "  return new Date(isoDate);",
+     "fix": "Construct and validate a local calendar date from the numeric components, or parse `${isoDate}T00:00:00` as local time before using local getters."
+    },
+    {
+     "severity": "medium",
+     "file": "due-date.js",
+     "line": 5,
+     "claim": "The regular expression accepts impossible calendar dates, and `new Date` silently normalizes them instead of rejecting them.",
+     "evidence": "  return new Date(isoDate);",
+     "fix": "After constructing the date, verify its year, month, and day equal the requested components; throw `bad date` if they differ."
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "due-date.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 66708,
+   "error": null,
+   "usage": {
+    "inputTokens": 15283,
+    "cachedInputTokens": 0,
+    "outputTokens": 49383
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "new Date(isoDate) parses date-only strings as UTC midnight, but weekday and formatted output are read via local time getters, shifting dates by -1 day in timezones behind UTC.",
+     "evidence": "  return new Date(isoDate);",
+     "file": "due-date.js",
+     "fix": "Use UTC methods throughout (getUTCDay, setUTCDate, getUTCFullYear, getUTCMonth, getUTCDate) or parse into local date components using new Date(y, m - 1, d).",
+     "line": 5,
+     "severity": "high"
+    },
+    {
+     "claim": "Adding DAY_MS (fixed 24 hours) assumes constant day length and causes clock drift across daylight saving time transitions, corrupting day-of-week and date calculations.",
+     "evidence": "    d.setTime(d.getTime() + DAY_MS);",
+     "file": "due-date.js",
+     "fix": "Advance calendar days using d.setUTCDate(d.getUTCDate() + 1) or d.setDate(d.getDate() + 1) instead of adding fixed milliseconds.",
+     "line": 12,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "due-date.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 21867,
+   "error": null,
+   "usage": {
+    "inputTokens": 52577,
+    "cachedInputTokens": 0,
+    "outputTokens": 3174
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "evidence": "return new Date(isoDate);",
+     "line": 5,
+     "fix": "Parse the ISO string as a local date to avoid UTC‑to‑local conversion, e.g.:\n```js\nconst [y, m, d] = isoDate.split('-').map(Number);\nreturn new Date(y, m - 1, d);\n```",
+     "description": "Using `new Date(isoDate)` treats the string as UTC midnight. Subsequent calls to `getFullYear()`, `getMonth()`, `getDate()` use the local timezone, causing an off‑by‑one‑day error for most time zones."
+    },
+    {
+     "evidence": "d.setTime(d.getTime() + DAY_MS);",
+     "line": 12,
+     "fix": "Increment the date by one calendar day instead of a fixed 24 h, e.g.:\n```js\nd.setDate(d.getDate() + 1);\n```",
+     "description": "Adding a constant 24 h (86 400 000 ms) ignores daylight‑saving transitions, so days that are 23 or 25 h long will be counted incorrectly, leading to wrong business‑day calculations."
+    },
+    {
+     "evidence": "if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(isoDate)) throw new Error(`bad date: ${isoDate}`);",
+     "line": 4,
+     "fix": "After constructing the Date, verify that the components match the input, e.g.:\n```js\nconst d = new Date(y, m - 1, d);\nif (d.getFullYear() !== y || d.getMonth() + 1 !== m || d.getDate() !== d) {\n  throw new Error(`invalid date: ${isoDate}`);\n}\nreturn d;\n```",
+     "description": "The regex only checks the format, not whether the date exists (e.g., \"2023-02-30\" passes). `new Date` will roll over to a different month, silently producing an incorrect result."
+    }
+   ],
+   "verification": "0/3 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "due-date.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 38814,
+   "error": null,
+   "usage": {
+    "inputTokens": 6495,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1904
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "`new Date(isoDate)` parses a YYYY-MM-DD string as **UTC midnight**, but `formatDay` reads it back with local-time getters (`getFullYear`, `getMonth`, `getDate`). In any timezone west of UTC (e.g. UTC-5) the date is already the previous calendar day at parse time, so every date is silently shifted back by one day.",
+     "evidence": "  return new Date(isoDate);",
+     "file": "due-date.js",
+     "fix": "Parse by splitting the string manually and using the Date(y,m,d) constructor (local midnight):\n```js\nconst [y, m, d] = isoDate.split('-').map(Number);\nreturn new Date(y, m - 1, d);\n```",
+     "line": 4,
+     "severity": "high"
+    },
+    {
+     "claim": "Adding a fixed `DAY_MS` (86 400 000 ms) skips DST transitions incorrectly. On a 25-hour fall-back day the addition only reaches 11 pm of the same local day; `getDay()` returns the same weekday, the day is not counted, and the loop then jumps 48 hours while counting only one business day — producing a result one calendar day too far in the future.",
+     "evidence": "    d.setTime(d.getTime() + DAY_MS);",
+     "file": "due-date.js",
+     "fix": "Use `setDate(d.getDate() + 1)` instead, which always moves to the next calendar day regardless of DST:\n```js\nd.setDate(d.getDate() + 1);\n```",
+     "line": 10,
+     "severity": "high"
+    },
+    {
+     "claim": "When `days` is 0 the loop body never executes and the raw input date is returned, even if that date is a Saturday or Sunday. There is no guard for this or for negative `days`.",
+     "evidence": "function addBusinessDays(isoDate, days) {",
+     "file": "due-date.js",
+     "fix": "Add an early validation: `if (days < 0 || !Number.isInteger(days)) throw new Error('days must be a non-negative integer');`. Optionally handle the `days === 0` case by snapping a weekend start date to the following Monday.",
+     "line": 8,
+     "severity": "low"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "inventory.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 7936,
+   "error": null,
+   "usage": {
+    "inputTokens": 15731,
+    "cachedInputTokens": 15104,
+    "outputTokens": 292
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "medium",
+     "file": "inventory.py",
+     "line": 6,
+     "claim": "average_stock crashes on an empty stock-history list.",
+     "evidence": "    return sum(levels) / len(levels)",
+     "fix": "Define empty-history behavior before dividing, e.g. return 0.0 or raise a clear ValueError; ensure reorder_list handles it as intended."
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "inventory.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 50051,
+   "error": null,
+   "usage": {
+    "inputTokens": 15176,
+    "cachedInputTokens": 0,
+    "outputTokens": 32931
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "average_stock raises ZeroDivisionError when levels is empty.",
+     "evidence": "    return sum(levels) / len(levels)",
+     "file": "inventory.py",
+     "fix": "return sum(levels) / len(levels) if levels else 0.0",
+     "line": 6,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "inventory.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 295943,
+   "error": null,
+   "usage": {
+    "inputTokens": 1111274,
+    "cachedInputTokens": 0,
+    "outputTokens": 37608
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "evidence": "    return sum(levels) / len(levels)",
+     "line": 6,
+     "fix": "Add a check for an empty list before the division, e.g.:\nif not levels:\n    return 0.0\n# then proceed with the return statement."
+    },
+    {
+     "evidence": "        if average_stock(history) < threshold:",
+     "line": 11,
+     "fix": "Ensure `history` is non‑empty before calling `average_stock`, or rely on the guard added to `average_stock` to handle empty sequences."
+    }
+   ],
+   "verification": "0/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "inventory.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 13727,
+   "error": null,
+   "usage": {
+    "inputTokens": 6346,
+    "cachedInputTokens": 10936,
+    "outputTokens": 549
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "`average_stock` divides by `len(levels)` without guarding against an empty list, raising ZeroDivisionError. Any SKU whose history list is empty will crash `reorder_list` with no diagnostic.",
+     "evidence": "    return sum(levels) / len(levels)",
+     "file": "inventory.py",
+     "fix": "Add an early guard: `if not levels: return 0.0` (or raise ValueError with a descriptive message) before the division.",
+     "line": 6,
+     "severity": "high"
+    }
+   ],
+   "verification": "1/1 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "slugify.js",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 11271,
+   "error": null,
+   "usage": {
+    "inputTokens": 16443,
+    "cachedInputTokens": 14080,
+    "outputTokens": 717
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "slugify.js",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 120184,
+   "error": null,
+   "usage": {
+    "inputTokens": 15181,
+    "cachedInputTokens": 0,
+    "outputTokens": 83108
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "When a collision occurs, appending the numeric suffix to a base slug that already reaches MAX_LENGTH causes the returned slug to exceed MAX_LENGTH.",
+     "evidence": "  return `${base}-${n}`;",
+     "file": "slugify.js",
+     "fix": "Shorten base to leave room for -${n} before appending the suffix so the total length never exceeds MAX_LENGTH.",
+     "line": 19,
+     "severity": "medium"
+    },
+    {
+     "claim": "String(title) coerces null and undefined to \"null\" and \"undefined\", preventing the fallback to 'item' in uniqueSlug.",
+     "evidence": "  return String(title)",
+     "file": "slugify.js",
+     "fix": "Return an empty string early if title is null or undefined: if (title == null) return '';",
+     "line": 4,
+     "severity": "medium"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "slugify.js",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 11774,
+   "error": null,
+   "usage": {
+    "inputTokens": 25021,
+    "cachedInputTokens": 0,
+    "outputTokens": 1256
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "slugify.js",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 43341,
+   "error": null,
+   "usage": {
+    "inputTokens": 6373,
+    "cachedInputTokens": 10936,
+    "outputTokens": 2295
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "uniqueSlug appends `-${n}` to a base that is already up to MAX_LENGTH (80) characters, silently producing slugs longer than MAX_LENGTH.",
+     "evidence": "  return `${base}-${n}`;",
+     "file": "slugify.js",
+     "fix": "Truncate base before the loop so the suffix fits: `const base = slugify(title).slice(0, MAX_LENGTH - 4) || 'item';` (4 chars reserves room for `-999`; adjust as needed).",
+     "line": 18,
+     "severity": "high"
+    },
+    {
+     "claim": "uniqueSlug never adds the slug it returns to `taken`, so two consecutive calls with the same title both return the same string, breaking the uniqueness guarantee.",
+     "evidence": "function uniqueSlug(title, taken) {",
+     "file": "slugify.js",
+     "fix": "Before every `return`, call `taken.add(result)`. For example: `const result = base; taken.add(result); return result;` and similarly for the `${base}-${n}` branch.",
+     "line": 13,
+     "severity": "high"
+    },
+    {
+     "claim": "The while loop has no upper bound; a caller that passes a `taken` set dense around `base-N` for large N causes an O(N) linear scan with no escape hatch.",
+     "evidence": "  while (taken.has(`${base}-${n}`)) n++;",
+     "file": "slugify.js",
+     "fix": "Add a guard, e.g. `if (n > 1e6) throw new RangeError('uniqueSlug: too many collisions');` inside the loop.",
+     "line": 16,
+     "severity": "medium"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "chunk.py",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 4445,
+   "error": null,
+   "usage": {
+    "inputTokens": 16405,
+    "cachedInputTokens": 14080,
+    "outputTokens": 112
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "chunk.py",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 57952,
+   "error": null,
+   "usage": {
+    "inputTokens": 15139,
+    "cachedInputTokens": 0,
+    "outputTokens": 39975
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "chunk.py",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 9764,
+   "error": null,
+   "usage": {
+    "inputTokens": 24945,
+    "cachedInputTokens": 0,
+    "outputTokens": 882
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "chunk.py",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 15225,
+   "error": null,
+   "usage": {
+    "inputTokens": 6326,
+    "cachedInputTokens": 10936,
+    "outputTokens": 609
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "debounce.ts",
+   "lane": "codex",
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 10383,
+   "error": null,
+   "usage": {
+    "inputTokens": 15744,
+    "cachedInputTokens": 15104,
+    "outputTokens": 574
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "debounce.ts",
+   "lane": "gemini",
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 84081,
+   "error": null,
+   "usage": {
+    "inputTokens": 15182,
+    "cachedInputTokens": 0,
+    "outputTokens": 59981
+   },
+   "verdict": "approve",
+   "findings": [],
+   "verification": "no claims to check"
+  },
+  {
+   "run": 2,
+   "file": "debounce.ts",
+   "lane": "oss",
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 53972,
+   "error": null,
+   "usage": {
+    "inputTokens": 148108,
+    "cachedInputTokens": 0,
+    "outputTokens": 8571
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "The debounced function is defined as an arrow function, which captures lexical `this` and prevents proper `this` binding when the original function expects a dynamic context.",
+     "evidence": "const debounced = (...args: A) => {",
+     "file": "debounce.ts",
+     "fix": "Define `debounced` as a regular function (`function debounced(...args: A) { … }`) so that the original `this` context is preserved when the debounced function is called.",
+     "line": 5,
+     "severity": "high"
+    },
+    {
+     "claim": "The call to the original function uses spread syntax `fn(...callArgs);` which also loses the original `this` binding.",
+     "evidence": "fn(...callArgs);",
+     "file": "debounce.ts",
+     "fix": "Invoke the original function with proper `this` binding, e.g. `fn.apply(this, callArgs);` (or capture `this` before the timeout and use it).",
+     "line": 12,
+     "severity": "high"
+    },
+    {
+     "claim": "The returned debounced function has a `cancel` method added via an arrow function, but its type is not expressed, which can cause TypeScript type errors for callers expecting the method.",
+     "evidence": "debounced.cancel = () => {",
+     "file": "debounce.ts",
+     "fix": "Add an explicit type that includes the `cancel` method, e.g. `type Debounced<A> = ((...args: A) => void) & { cancel(): void };` and annotate the return as `const debounced: Debounced<A> = …;`.",
+     "line": 16,
+     "severity": "medium"
+    }
+   ],
+   "verification": "3/3 claims verified against the files"
+  },
+  {
+   "run": 2,
+   "file": "debounce.ts",
+   "lane": "claude",
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-4-6",
+   "ms": 37400,
+   "error": null,
+   "usage": {
+    "inputTokens": 6356,
+    "cachedInputTokens": 10936,
+    "outputTokens": 1745
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "The `lastArgs` indirection is unnecessary and misleading. Because only one timer can exist at a time (it is cleared before every new `setTimeout`), the callback always runs with the most-recent args regardless. Storing args in a shared mutable cell instead of in the closure creates needless state and will confuse future maintainers who wonder whether it matters.",
+     "evidence": "      const callArgs = lastArgs as A;",
+     "file": "debounce.ts",
+     "fix": "Remove the `lastArgs` variable entirely and capture `args` directly in the closure: `timer = setTimeout(() => { timer = null; fn(...args); }, waitMs);`",
+     "line": 9,
+     "severity": "low"
+    },
+    {
+     "claim": "No `flush` method is exposed. Lodash-style debounce always exposes `flush` (invoke immediately and reset) alongside `cancel`. Callers that expect to be able to drain the pending call before e.g. unmounting a component have no way to do so.",
+     "evidence": "  debounced.cancel = () => {",
+     "file": "debounce.ts",
+     "fix": "Add `debounced.flush = () => { if (timer !== null) { clearTimeout(timer); timer = null; const a = lastArgs as A; lastArgs = null; fn(...a); } };`",
+     "line": null,
+     "severity": "low"
+    }
+   ],
+   "verification": "2/2 claims verified against the files"
+  }
+ ]
+}

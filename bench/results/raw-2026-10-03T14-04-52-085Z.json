@@ -1,0 +1,2067 @@
+{
+ "set": "main",
+ "startedAt": "2026-10-03T14:04:52.085Z",
+ "minutes": 35.06738333333333,
+ "lanes": [
+  "codex",
+  "gemini",
+  "oss",
+  "claude"
+ ],
+ "runs": 1,
+ "results": [
+  {
+   "run": 1,
+   "id": "lru",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 14708,
+   "error": null,
+   "usage": {
+    "inputTokens": 16049,
+    "cachedInputTokens": 11008,
+    "outputTokens": 993
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "severity": "medium",
+     "file": "lru.js",
+     "line": 34,
+     "claim": "get() returns a hit without moving its key to the newest Map position, so an accessed entry can still be evicted before an unaccessed newer entry.",
+     "evidence": "    return entry.value;",
+     "fix": "On a hit, delete and reinsert the entry before returning it: `this.map.delete(key); this.map.set(key, entry);`."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "lru",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 68774,
+   "error": null,
+   "usage": {
+    "inputTokens": 14848,
+    "cachedInputTokens": 0,
+    "outputTokens": 47874
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "get() does not update entry recency, causing frequently read entries to be evicted prematurely in FIFO order.",
+     "evidence": "  get(key) {",
+     "file": "lru.js",
+     "fix": "Re-insert the entry on hit using this.map.delete(key) and this.map.set(key, entry) before returning entry.value.",
+     "line": 26,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "lru",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 50587,
+   "error": null,
+   "usage": {
+    "inputTokens": 25985,
+    "cachedInputTokens": 50688,
+    "outputTokens": 6035
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Cache recency is not updated on get; accessed entry remains at old position, breaking LRU ordering.",
+     "evidence": "    return entry.value;",
+     "file": "lru.js",
+     "fix": "In `get`, after incrementing hits, delete and re‑insert the key to move it to the end of the Map.",
+     "line": 33,
+     "severity": "high"
+    },
+    {
+     "claim": "`sizeOf` return value is not validated; negative, NaN, or non‑numeric sizes can corrupt byte accounting.",
+     "evidence": "    const size = this.sizeOf(value);",
+     "file": "lru.js",
+     "fix": "Validate `size` is a finite non‑negative number before using it; throw or ignore invalid sizes.",
+     "line": 37,
+     "severity": "medium"
+    },
+    {
+     "claim": "`maxBytes` is not validated; negative values are accepted, leading to incorrect eviction logic.",
+     "evidence": "  constructor({ maxEntries = 500, maxBytes = Infinity, sizeOf = () => 1 } = {}) {",
+     "file": "lru.js",
+     "fix": "Add a check that `maxBytes` is a non‑negative number (or Infinity) and throw a RangeError if invalid.",
+     "line": 9,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "lru",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 10491,
+   "error": null,
+   "usage": {
+    "inputTokens": 9136,
+    "cachedInputTokens": 13653,
+    "outputTokens": 985
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "get() does not move the entry to the most-recent position, so eviction order is insertion order (FIFO) and the cache is not LRU. Hot entries get evicted.",
+     "evidence": "    return entry.value;",
+     "file": "lru.js",
+     "fix": "In get(), after a hit, run this.map.delete(key); this.map.set(key, entry); before returning entry.value.",
+     "line": 28,
+     "severity": "high"
+    },
+    {
+     "claim": "evict() can loop forever. If sizeOf returns NaN, then this.bytes becomes NaN and the comparison is false, so there is no infinite loop there. But if the map is empty and this.bytes is still above maxBytes (for example from negative or float drift), oldestKey is undefined, delete(undefined) returns false, and the while loop never ends.",
+     "evidence": "      const oldestKey = this.map.keys().next().value;",
+     "file": "lru.js",
+     "fix": "Break out of the loop when the map is empty: if (this.map.size === 0) { this.bytes = 0; break; }. Also validate that sizeOf returns a finite, non-negative number.",
+     "line": 58,
+     "severity": "medium"
+    },
+    {
+     "claim": "When an oversized value is rejected for an existing key, the stale old entry stays in the cache, so later get() calls return outdated data.",
+     "evidence": "    if (size > this.maxBytes) return false;",
+     "file": "lru.js",
+     "fix": "Call this.delete(key) before returning false.",
+     "line": 42,
+     "severity": "low"
+    },
+    {
+     "claim": "Entries whose stored value is undefined are fine, because the entry wrapper is checked. However, has() does not count as a hit or miss and does not refresh recency, which is inconsistent with get().",
+     "evidence": "    return this.map.has(key);",
+     "file": "lru.js",
+     "fix": "Document the behavior, or have has() refresh recency.",
+     "line": 24,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "semaphore",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 10312,
+   "error": null,
+   "usage": {
+    "inputTokens": 16518,
+    "cachedInputTokens": 16128,
+    "outputTokens": 486
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "semaphore.js",
+     "line": 27,
+     "claim": "Returning on a cache hit bypasses the `finally` block, so the acquired render slot is never released.",
+     "evidence": "    return thumbnails.get(key);",
+     "fix": "Move the cache check before `await renderSlots.acquire()`, or wrap both the cache check and rendering in the `try`/`finally` after acquiring the slot."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "semaphore",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 60890,
+   "error": null,
+   "usage": {
+    "inputTokens": 14557,
+    "cachedInputTokens": 0,
+    "outputTokens": 40043
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Cache hit returns without releasing the acquired semaphore permit, leaking permits and deadlocking subsequent render calls after 4 cache hits.",
+     "evidence": "    return thumbnails.get(key);",
+     "file": "semaphore.js",
+     "fix": "Wrap the cache lookup inside the try...finally block so renderSlots.release() is always called, or call renderSlots.release() before returning.",
+     "line": 31,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "semaphore",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 105722,
+   "error": null,
+   "usage": {
+    "inputTokens": 26774,
+    "cachedInputTokens": 202496,
+    "outputTokens": 10069
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Returning a cached thumbnail bypasses the finally block, so the semaphore slot is never released, leading to permit leakage and possible deadlock.",
+     "evidence": "if (thumbnails.has(key)) {",
+     "file": "semaphore.js",
+     "fix": "Release the semaphore before returning the cached result, e.g., add `renderSlots.release();` before the return or restructure the logic so the finally block always executes.",
+     "line": 30,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "semaphore",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 10471,
+   "error": null,
+   "usage": {
+    "inputTokens": 8798,
+    "cachedInputTokens": 13653,
+    "outputTokens": 836
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "On a cache hit the function returns before the try/finally, so release() is never called and the permit acquired at line 33 leaks; after 4 hits the semaphore is exhausted and every later call hangs forever.",
+     "evidence": "    return thumbnails.get(key);",
+     "file": "semaphore.js",
+     "fix": "Check the cache before acquire(), or move the cache check inside the try block so finally always releases. Example: compute key and check thumbnails first, then acquire, then try { ... } finally { release }.",
+     "line": 36,
+     "severity": "high"
+    },
+    {
+     "claim": "Concurrent calls with the same image and width all miss the cache and render duplicates, because only the finished result is cached. Caching the in-flight promise would avoid this.",
+     "evidence": "    thumbnails.set(key, result);",
+     "file": "semaphore.js",
+     "fix": "Store the in-flight promise in the map (set before awaiting), and delete the entry on rejection so failures are not cached.",
+     "line": 43,
+     "severity": "medium"
+    },
+    {
+     "claim": "If options is undefined, destructuring in renderThumbnail throws a TypeError. Also, the render callback is required but has no default or validation.",
+     "evidence": "async function renderThumbnail(image, { width = 320, render }) {",
+     "file": "semaphore.js",
+     "fix": "Default the parameter to {} and throw a clear error if render is not a function.",
+     "line": 47,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "billing",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 17447,
+   "error": null,
+   "usage": {
+    "inputTokens": 16748,
+    "cachedInputTokens": 14080,
+    "outputTokens": 626
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "billing/gateway.js",
+     "line": 16,
+     "claim": "`amount` is documented and supplied as cents by the caller, but this conversion multiplies it by 100 again before sending it to the gateway.",
+     "evidence": "  const minorUnits = Math.round(amount * 100);",
+     "fix": "Treat `amount` as minor units and send it directly, or change `chargeOrder` to pass `totalCents / 100` consistently."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "billing",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 39655,
+   "error": null,
+   "usage": {
+    "inputTokens": 14814,
+    "cachedInputTokens": 0,
+    "outputTokens": 26351
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "chargeOrder passes totalCents as amount to createCharge, which expects major units and multiplies by 100, overcharging customers by 100x.",
+     "evidence": "    amount: totalCents,",
+     "file": "billing/charge.js",
+     "fix": "Pass amount in major currency units: amount: totalCents / 100,",
+     "line": 18,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "billing",
+   "lane": "oss",
+   "retries": 0,
+   "ok": false,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 112225,
+   "error": null,
+   "usage": {
+    "inputTokens": 9169,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1103
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The amount is passed in cents, but gateway.createCharge documents `amount` as major units and multiplies it by 100. A 12.50 EUR order (1250 cents) is sent as 125000 minor units, so the customer is charged 100x.",
+     "evidence": "    amount: totalCents,",
+     "file": "billing/charge.js",
+     "fix": "Pass `amount: totalCents / 100`, or change the gateway API to accept minor units and drop the `* 100`. The first option keeps the gateway contract as documented.",
+     "line": 20,
+     "severity": "high"
+    },
+    {
+     "claim": "The idempotency key is derived only from the order id. If the order is edited and retried, or the currency or amount changes, the gateway may replay the old charge or reject the request. Idempotency is not tied to the amount.",
+     "evidence": "    idempotencyKey: `order-${order.id}`,",
+     "file": "billing/charge.js",
+     "fix": "Include the amount and currency in the key, e.g. `order-${order.id}-${totalCents}-${currency}`.",
+     "line": 23,
+     "severity": "medium"
+    },
+    {
+     "claim": "The total is not validated. Missing or non-integer quantities and prices, or negative values, can produce NaN or fractional cents. NaN < 50 is false, so the minimum-charge check is bypassed and NaN is sent to the gateway.",
+     "evidence": "  return order.lines.reduce((sum, line) => sum + line.unitPriceCents * line.quantity, 0);",
+     "file": "billing/charge.js",
+     "fix": "Validate that each value is an integer >= 0 and that the total is finite (Number.isInteger), and throw otherwise.",
+     "line": 8,
+     "severity": "low"
+    },
+    {
+     "claim": "`amount * 100` is rounded to whole minor units, which is wrong for currencies with 0 or 3 decimals (JPY, KWD). Because the currency is caller-supplied, the amount can be off by a factor of 10 or 100.",
+     "evidence": "  const minorUnits = Math.round(amount * 100);",
+     "file": "billing/gateway.js",
+     "fix": "Use a per-currency exponent table, or accept minor units directly.",
+     "line": 17,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "billing",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 13060,
+   "error": null,
+   "usage": {
+    "inputTokens": 9175,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1274
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The gateway documents `amount` as major units (e.g. 12.50) and multiplies by 100, but chargeOrder passes integer cents. A 1250-cent order becomes 125000 minor units, a 100x overcharge.",
+     "evidence": "    amount: totalCents,",
+     "file": "billing/charge.js",
+     "fix": "Pass major units: `amount: totalCents / 100`. Alternatively, change the gateway to accept cents and remove the `* 100`. Use one unit convention across both files.",
+     "line": 21,
+     "severity": "high"
+    },
+    {
+     "claim": "The amount is converted with floating-point `Math.round(amount * 100)`, and the major-unit API is error-prone. Amounts are also assumed to have 2 decimals, which is wrong for currencies like JPY (0 decimals) or KWD (3 decimals). `order.currency` can be anything.",
+     "evidence": "  const minorUnits = Math.round(amount * 100);",
+     "file": "billing/gateway.js",
+     "fix": "Make the gateway take integer minor units directly (`amountMinor`) and drop the float conversion. Handle currency exponents explicitly if non-2-decimal currencies are supported.",
+     "line": 17,
+     "severity": "medium"
+    },
+    {
+     "claim": "The currency defaults silently to EUR when `order.currency` is missing. The minimum-charge check uses a fixed 50 cents regardless of currency. An order priced in another currency would be charged as EUR.",
+     "evidence": "    currency: order.currency || 'EUR',",
+     "file": "billing/charge.js",
+     "fix": "Require `order.currency` and throw if it is absent.",
+     "line": 22,
+     "severity": "medium"
+    },
+    {
+     "claim": "The idempotency key is derived only from the order id. If the order is amended and re-charged, or a first attempt failed after the amount changed, the gateway may replay the old response or reject the request with a different payload.",
+     "evidence": "    idempotencyKey: `order-${order.id}`,",
+     "file": "billing/charge.js",
+     "fix": "Include the amount or an attempt/version in the key, e.g. `order-${order.id}-${totalCents}`.",
+     "line": 24,
+     "severity": "low"
+    },
+    {
+     "claim": "The total is not validated. A NaN from a missing price makes `totalCents < MIN_ORDER_CENTS` false, so the check passes. Negative quantities or fractional cents are also accepted.",
+     "evidence": "  return order.lines.reduce((sum, line) => sum + line.unitPriceCents * line.quantity, 0);",
+     "file": "billing/charge.js",
+     "fix": "Validate with `Number.isInteger(totalCents) && totalCents >= MIN_ORDER_CENTS` before charging.",
+     "line": 8,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "token-bucket",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 14884,
+   "error": null,
+   "usage": {
+    "inputTokens": 16626,
+    "cachedInputTokens": 14080,
+    "outputTokens": 902
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "token-bucket.js",
+     "line": 30,
+     "claim": "`elapsed` is in milliseconds from `Date.now()`, but the configured per-second rate is multiplied by it directly, so a bucket refills 1,000 times too quickly.",
+     "evidence": "      b.tokens = Math.min(this.burst, b.tokens + elapsed * this.rate);",
+     "fix": "Convert elapsed to seconds: `b.tokens = Math.min(this.burst, b.tokens + (elapsed / 1000) * this.rate);`"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "token-bucket",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 70362,
+   "error": null,
+   "usage": {
+    "inputTokens": 14676,
+    "cachedInputTokens": 0,
+    "outputTokens": 47290
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Elapsed time is calculated in milliseconds from Date.now() but multiplied directly by ratePerSecond without converting to seconds, refilling tokens 1,000x faster than configured.",
+     "evidence": "      b.tokens = Math.min(this.burst, b.tokens + elapsed * this.rate);",
+     "file": "token-bucket.js",
+     "fix": "b.tokens = Math.min(this.burst, b.tokens + (elapsed / 1000) * this.rate);",
+     "line": 28,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "token-bucket",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 86725,
+   "error": null,
+   "usage": {
+    "inputTokens": 28181,
+    "cachedInputTokens": 175936,
+    "outputTokens": 8765
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Refill calculation uses `elapsed` in milliseconds while `rate` is tokens per second, causing token over‑refill.",
+     "evidence": "b.tokens = Math.min(this.burst, b.tokens + elapsed * this.rate);",
+     "file": "token-bucket.js",
+     "fix": "Convert `elapsed` to seconds before applying the rate: `b.tokens = Math.min(this.burst, b.tokens + (elapsed / 1000) * this.rate);`",
+     "line": 28,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "token-bucket",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 12600,
+   "error": null,
+   "usage": {
+    "inputTokens": 8946,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1202
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "`now()` returns milliseconds, but `rate` is tokens per second. Refill adds 1000x too many tokens, so a drained bucket refills fully within about 2ms. The limiter is effectively disabled.",
+     "evidence": "      b.tokens = Math.min(this.burst, b.tokens + elapsed * this.rate);",
+     "file": "token-bucket.js",
+     "fix": "Divide elapsed by 1000: `b.tokens + (elapsed / 1000) * this.rate`.",
+     "line": 25,
+     "severity": "high"
+    },
+    {
+     "claim": "Retry-After is computed as ceil(1/rate), which gives 1 for any rate of 1 or more and is wrong for a cost greater than 1. It also gives Infinity for rate 0. It should be the time until enough tokens exist, with a floor of 1 second.",
+     "evidence": "      res.setHeader('retry-after', String(Math.ceil(1 / this.rate)));",
+     "file": "token-bucket.js",
+     "fix": "Compute the wait from the deficit: `Math.max(1, Math.ceil((cost - b.tokens) / this.rate))`. This needs the bucket exposed from tryRemove.",
+     "line": 44,
+     "severity": "medium"
+    },
+    {
+     "claim": "Buckets are never evicted, so the Map grows without bound, one entry per distinct req.ip. This is a memory-exhaustion risk, especially with spoofed or IPv6 addresses.",
+     "evidence": "      this.buckets.set(clientId, b);",
+     "file": "token-bucket.js",
+     "fix": "Periodically delete buckets that have been idle long enough to be full again, or use an LRU cache with a size cap.",
+     "line": 15,
+     "severity": "medium"
+    },
+    {
+     "claim": "req.ip can be undefined, for example on a destroyed socket or behind a misconfigured proxy. All such requests then share one bucket under the key `undefined`.",
+     "evidence": "      const id = req.ip;",
+     "file": "token-bucket.js",
+     "fix": "Fall back to a stable key, or reject the request when req.ip is missing.",
+     "line": 41,
+     "severity": "low"
+    },
+    {
+     "claim": "A cost greater than burst can never succeed, because tokens are capped at burst. Such a request is permanently denied, and the Retry-After header would be misleading.",
+     "evidence": "    if (b.tokens < cost) return false;",
+     "file": "token-bucket.js",
+     "fix": "Validate that cost <= burst, or throw an error.",
+     "line": 31,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "emitter",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9456,
+   "error": null,
+   "usage": {
+    "inputTokens": 16527,
+    "cachedInputTokens": 14080,
+    "outputTokens": 455
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "emitter.js",
+     "line": 26,
+     "claim": "Calling `off(event, fn)` with a function absent from an existing event listener list splices at index `-1`, removing the last registered listener instead of doing nothing.",
+     "evidence": "    list.splice(list.indexOf(fn), 1);",
+     "fix": "Store the index and only splice when it is non-negative: `const index = list.indexOf(fn); if (index >= 0) list.splice(index, 1);`"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "emitter",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 73639,
+   "error": null,
+   "usage": {
+    "inputTokens": 14577,
+    "cachedInputTokens": 0,
+    "outputTokens": 47345
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Calling off() with a function not in the listener list removes the last listener because indexOf returns -1.",
+     "evidence": "    list.splice(list.indexOf(fn), 1);",
+     "file": "emitter.js",
+     "fix": "const index = list.indexOf(fn);\nif (index !== -1) list.splice(index, 1);",
+     "line": 27,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "emitter",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 79110,
+   "error": null,
+   "usage": {
+    "inputTokens": 27279,
+    "cachedInputTokens": 103680,
+    "outputTokens": 8919
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "evidence": "list.splice(list.indexOf(fn), 1);",
+     "line": 27,
+     "fix": "Check that the function exists in the listener list before splicing. For example:\n```js\nconst idx = list.indexOf(fn);\nif (idx !== -1) {\n  list.splice(idx, 1);\n}\n```",
+     "description": "If `fn` is not present in the listeners array, `list.indexOf(fn)` returns -1, causing `splice(-1, 1)` to remove the last element unintentionally."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "emitter",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 10844,
+   "error": null,
+   "usage": {
+    "inputTokens": 8786,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1014
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "If fn is not in the list, indexOf returns -1 and splice(-1, 1) removes the LAST listener, which is an unrelated one. This happens when an unsubscribe handle from on() is called twice, when off() is called with an unregistered fn, or when a once wrapper has already fired and then its handle is called.",
+     "evidence": "    list.splice(list.indexOf(fn), 1);",
+     "file": "emitter.js",
+     "fix": "const i = list.indexOf(fn); if (i === -1) return; list.splice(i, 1);",
+     "line": 26,
+     "severity": "high"
+    },
+    {
+     "claim": "once() wrappers cannot be removed with off(event, originalFn), because the wrapper is what is stored. With the splice bug, off(event, fn) then removes an unrelated last listener instead.",
+     "evidence": "    const wrapper = (...args) => {",
+     "file": "emitter.js",
+     "fix": "Set wrapper.listener = fn, and in off() match l === fn || l.listener === fn.",
+     "line": 21,
+     "severity": "medium"
+    },
+    {
+     "claim": "A throwing listener aborts the emit loop, so later listeners are skipped. A once wrapper has already removed itself by then, so it is lost without its callback finishing.",
+     "evidence": "    for (const fn of [...list]) fn(...args);",
+     "file": "emitter.js",
+     "fix": "Wrap each call in try/catch and rethrow the first error after the loop. Alternatively, document that emit propagates listener errors.",
+     "line": 38,
+     "severity": "medium"
+    },
+    {
+     "claim": "The snapshot is taken before the loop, so a listener removed by an earlier listener during the same emit is still called.",
+     "evidence": "    for (const fn of [...list]) fn(...args);",
+     "file": "emitter.js",
+     "fix": "Check that the listener is still registered before calling it, or document this snapshot behavior.",
+     "line": 38,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "playlist",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 7256,
+   "error": null,
+   "usage": {
+    "inputTokens": 16589,
+    "cachedInputTokens": 11008,
+    "outputTokens": 474
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "playlist.py",
+     "line": 12,
+     "claim": "The mutable default list is reused across calls, so adding a track to one default-constructed playlist adds it to every other such playlist.",
+     "evidence": "    def __init__(self, name: str, tracks: List[Track] = []):",
+     "fix": "Use `tracks: Optional[List[Track]] = None` and initialize with `self.tracks = [] if tracks is None else tracks`."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "playlist",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 52745,
+   "error": null,
+   "usage": {
+    "inputTokens": 14622,
+    "cachedInputTokens": 0,
+    "outputTokens": 35383
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The default parameter tracks=[] is evaluated once at definition time, causing all Playlist instances created without an explicit tracks argument to share the same mutable list.",
+     "evidence": "    def __init__(self, name: str, tracks: List[Track] = []):",
+     "file": "playlist.py",
+     "fix": "Change the parameter default to tracks: Optional[List[Track]] = None and initialize with self.tracks = list(tracks) if tracks is not None else []",
+     "line": 13,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "playlist",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 203332,
+   "error": null,
+   "usage": {
+    "inputTokens": 27630,
+    "cachedInputTokens": 325888,
+    "outputTokens": 19895
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "playlist",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 9872,
+   "error": null,
+   "usage": {
+    "inputTokens": 8872,
+    "cachedInputTokens": 13653,
+    "outputTokens": 867
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The mutable default argument `tracks=[]` is shared across all Playlist instances created without tracks. Every playlist built that way, including each `merge()` result, appends to the same list, so tracks leak between playlists and duration() and by_artist() return wrong results.",
+     "evidence": "    def __init__(self, name: str, tracks: List[Track] = []):",
+     "file": "playlist.py",
+     "fix": "Use `tracks: Optional[List[Track]] = None` and set `self.tracks = list(tracks) if tracks is not None else []`.",
+     "line": 13,
+     "severity": "high"
+    },
+    {
+     "claim": "The constructor stores the caller's list by reference, so add() and remove() mutate the caller's list. Tracks passed in at construction also skip the positive-length validation that add() enforces.",
+     "evidence": "        self.tracks = tracks",
+     "file": "playlist.py",
+     "fix": "Copy the list with `list(tracks)`, and validate each track's seconds in the constructor or add them via add().",
+     "line": 17,
+     "severity": "medium"
+    },
+    {
+     "claim": "remove() matches titles case-sensitively and exactly, while by_artist() and merge() compare with casefold(). Removing 'Song' will not remove 'song', which is inconsistent.",
+     "evidence": "            if t.title == title:",
+     "file": "playlist.py",
+     "fix": "Compare `t.title.casefold() == title.casefold()`, or document that matching is exact.",
+     "line": 27,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "report",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 5502,
+   "error": null,
+   "usage": {
+    "inputTokens": 15858,
+    "cachedInputTokens": 15104,
+    "outputTokens": 251
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "report.py",
+     "line": 16,
+     "claim": "The generator `rows` was already exhausted by the preceding count, so this sum always computes zero revenue.",
+     "evidence": "    revenue = sum(float(r[\"amount\"]) for r in rows)",
+     "fix": "Compute count and revenue in one pass, or materialize `rows` before iterating it twice."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "report",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 56512,
+   "error": null,
+   "usage": {
+    "inputTokens": 14572,
+    "cachedInputTokens": 0,
+    "outputTokens": 40785
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The rows generator is exhausted on line 17 by count, causing revenue to always evaluate to 0.0.",
+     "evidence": "    revenue = sum(float(r[\"amount\"]) for r in rows)",
+     "file": "report.py",
+     "fix": "Materialize rows = list(...) or aggregate count and revenue in a single pass over rows.",
+     "line": 18,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "report",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 211670,
+   "error": null,
+   "usage": {
+    "inputTokens": 28598,
+    "cachedInputTokens": 410816,
+    "outputTokens": 23879
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "description": "The `summary` function consumes the `rows` iterator twice: first to compute `count`, then again to compute `revenue`. After the first consumption, the iterator is exhausted, so `revenue` (and consequently `average`) will always be 0, yielding incorrect summary results.",
+     "evidence": [
+      "count = sum(1 for _ in rows)",
+      "revenue = sum(float(r[\"amount\"]) for r in rows)"
+     ],
+     "fix": "Materialize the rows into a list before iterating multiple times, e.g.:\n\n```python\nrows = list(paid_rows(read_rows(path)))\ncount = len(rows)\nrevenue = sum(float(r[\"amount\"]) for r in rows)\n```",
+     "line": [
+      17,
+      18
+     ],
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "report",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 9459,
+   "error": null,
+   "usage": {
+    "inputTokens": 8812,
+    "cachedInputTokens": 13653,
+    "outputTokens": 784
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "`rows` is a single-use generator. The `count` line consumes it, so the `revenue` sum iterates an empty generator. Revenue is always 0.0 and average is always 0.0, while orders is correct.",
+     "evidence": "    revenue = sum(float(r[\"amount\"]) for r in rows)",
+     "file": "report.py",
+     "fix": "Materialize the rows: `rows = list(paid_rows(read_rows(path)))`, then use `count = len(rows)`.",
+     "line": 17,
+     "severity": "high"
+    },
+    {
+     "claim": "A paid row with a missing, empty or non-numeric `amount` raises KeyError or ValueError and aborts the whole report. In `by_country`, `r[\"amount\"]` has the same problem. Also, the declared return type `Dict[str, float]` is wrong because `orders` is an int.",
+     "evidence": "    revenue = sum(float(r[\"amount\"]) for r in rows)",
+     "file": "report.py",
+     "fix": "Validate or skip bad amounts, or raise a clear error that includes the row. Change the return type to `Dict[str, float | int]`.",
+     "line": 18,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "http-timeout",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 7792,
+   "error": null,
+   "usage": {
+    "inputTokens": 16563,
+    "cachedInputTokens": 14080,
+    "outputTokens": 265
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "http/config.js",
+     "line": 6,
+     "claim": "The timeout value is documented as seconds but consumed directly by `setTimeout`, whose delay argument is milliseconds.",
+     "evidence": "  timeout: Number(process.env.API_TIMEOUT || 30),",
+     "fix": "Convert the configured seconds to milliseconds when scheduling the timer, e.g. `setTimeout(() => controller.abort(), config.timeout * 1000)`, or document and rename the setting as milliseconds."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "http-timeout",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 58264,
+   "error": null,
+   "usage": {
+    "inputTokens": 14612,
+    "cachedInputTokens": 0,
+    "outputTokens": 39579
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "config.timeout is specified in seconds, but setTimeout expects milliseconds, causing requests to abort after 30 milliseconds.",
+     "evidence": "    const timer = setTimeout(() => controller.abort(), config.timeout);",
+     "file": "http/client.js",
+     "fix": "const timer = setTimeout(() => controller.abort(), config.timeout * 1000);",
+     "line": 9,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "http-timeout",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 293035,
+   "error": null,
+   "usage": {
+    "inputTokens": 31328,
+    "cachedInputTokens": 629632,
+    "outputTokens": 34845
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "evidence": "const timer = setTimeout(() => controller.abort(), config.timeout);",
+     "line": 9,
+     "fix": "Multiply the timeout by 1000 to convert seconds to milliseconds, e.g.,\n```js\nconst timer = setTimeout(() => controller.abort(), config.timeout * 1000);\n```"
+    },
+    {
+     "evidence": "for (let attempt = 0; attempt <= config.retries; attempt++) {",
+     "line": 7,
+     "fix": "Use a strict less‑than comparison so the number of attempts matches the configured retries, e.g.,\n```js\nfor (let attempt = 0; attempt < config.retries; attempt++) {\n```"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "http-timeout",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 11853,
+   "error": null,
+   "usage": {
+    "inputTokens": 8866,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1097
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "config.timeout is in seconds (per config.js comment), but setTimeout expects milliseconds, so requests are aborted after 30 ms by default and nearly always fail.",
+     "evidence": "    const timer = setTimeout(() => controller.abort(), config.timeout);",
+     "file": "http/client.js",
+     "fix": "Use setTimeout(() => controller.abort(), config.timeout * 1000), or make config.timeout milliseconds.",
+     "line": 9,
+     "severity": "high"
+    },
+    {
+     "claim": "Retries apply to every method, including non-idempotent POST/PATCH. A timeout or 5xx after the server processed the request causes a duplicate side effect. Retries also have no backoff, so they hit a failing server immediately.",
+     "evidence": "      if (res.status >= 500) throw new Error(`server error ${res.status}`);",
+     "file": "http/client.js",
+     "fix": "Retry only idempotent methods, or when an idempotency key is present. Add exponential backoff with jitter between attempts.",
+     "line": null,
+     "severity": "medium"
+    },
+    {
+     "claim": "After the last attempt, a 5xx response is thrown as a generic Error and the response is discarded. Callers cannot read the status or body. The unconsumed response body on retried 5xx responses is not cancelled, which can hold connections open.",
+     "evidence": "  throw lastError;",
+     "file": "http/client.js",
+     "fix": "Call res.body?.cancel() before retrying. On the final attempt, return the 5xx response or throw an error that carries the status and body.",
+     "line": 22,
+     "severity": "low"
+    },
+    {
+     "claim": "Number() of an invalid env value gives NaN. A NaN timeout fires immediately, and a NaN retries value makes the loop condition false, so no request is ever sent and `throw lastError` throws undefined.",
+     "evidence": "  retries: Number(process.env.API_RETRIES || 2),",
+     "file": "http/config.js",
+     "fix": "Validate with Number.isFinite and fall back to the default. Also guard the throw so it never throws undefined.",
+     "line": 6,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "admin-route",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9466,
+   "error": null,
+   "usage": {
+    "inputTokens": 16705,
+    "cachedInputTokens": 14080,
+    "outputTokens": 342
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "admin/app.js",
+     "line": 15,
+     "claim": "Any unauthenticated caller can delete an arbitrary user by ID because this route is registered before the global user-authentication middleware and has no route-level authorization middleware.",
+     "evidence": "app.delete('/admin/users/:id', (req, res) => {",
+     "fix": "Require admin authorization on this route: `app.delete('/admin/users/:id', requireAdmin, (req, res) => {`."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "admin-route",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 45498,
+   "error": null,
+   "usage": {
+    "inputTokens": 29786,
+    "cachedInputTokens": 0,
+    "outputTokens": 17035
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The DELETE /admin/users/:id route lacks authentication and authorization middleware, allowing unauthenticated callers to delete arbitrary users.",
+     "evidence": "app.delete('/admin/users/:id', (req, res) => {",
+     "file": "admin/app.js",
+     "fix": "app.delete('/admin/users/:id', requireAdmin, (req, res) => {",
+     "line": 15,
+     "severity": "high"
+    },
+    {
+     "claim": "Object.entries(req.body) throws an unhandled TypeError if req.body is undefined when a request lacks a JSON body.",
+     "evidence": "  const changes = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));",
+     "file": "admin/app.js",
+     "fix": "  const changes = Object.fromEntries(Object.entries(req.body || {}).filter(([k]) => allowed.includes(k)));",
+     "line": 26,
+     "severity": "medium"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "admin-route",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 181995,
+   "error": null,
+   "usage": {
+    "inputTokens": 30225,
+    "cachedInputTokens": 425024,
+    "outputTokens": 19082
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "DELETE /admin/users/:id route lacks authentication and admin authorization, allowing unauthenticated deletion.",
+     "evidence": "app.delete('/admin/users/:id', (req, res) => {",
+     "file": "admin/app.js",
+     "fix": "Add requireAdmin middleware: app.delete('/admin/users/:id', requireAdmin, (req, res) => { … })",
+     "line": 15,
+     "severity": "high"
+    },
+    {
+     "claim": "JWT secret may be undefined, causing verification errors.",
+     "evidence": "const SECRET = process.env.JWT_SECRET;",
+     "file": "admin/auth.js",
+     "fix": "Validate SECRET at startup and abort with clear error if missing.",
+     "line": 5,
+     "severity": "medium"
+    },
+    {
+     "claim": "deleteUser result not checked; may return 404 for non‑existent user but always returns 204.",
+     "evidence": "req.app.locals.db.deleteUser(req.params.id);",
+     "file": "admin/app.js",
+     "fix": "Check result and respond with 404 if user not found.",
+     "line": 16,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "admin-route",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 11364,
+   "error": null,
+   "usage": {
+    "inputTokens": 9092,
+    "cachedInputTokens": 13653,
+    "outputTokens": 979
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "The admin delete route has no authentication or authorization. It is registered before app.use(requireUser), so any unauthenticated caller can delete any user.",
+     "evidence": "app.delete('/admin/users/:id', (req, res) => {",
+     "file": "admin/app.js",
+     "fix": "app.delete('/admin/users/:id', requireAdmin, (req, res) => { ... })",
+     "line": 14,
+     "severity": "high"
+    },
+    {
+     "claim": "SECRET is read once at module load. If JWT_SECRET is unset, jwt.verify throws for every token. The catch block turns that into 401 'invalid token', so the misconfiguration is hidden. The error is not logged.",
+     "evidence": "const SECRET = process.env.JWT_SECRET;",
+     "file": "admin/auth.js",
+     "fix": "Throw at startup if JWT_SECRET is missing.",
+     "line": 5,
+     "severity": "medium"
+    },
+    {
+     "claim": "req.body can be undefined or a non-object (for example, a non-JSON content type or a null body). Object.entries then throws or yields wrong results. Express 4 returns a 500 for this.",
+     "evidence": "const changes = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));",
+     "file": "admin/app.js",
+     "fix": "Use Object.entries(req.body || {}) and validate that the body is an object.",
+     "line": 22,
+     "severity": "low"
+    },
+    {
+     "claim": "A valid token with no sub claim produces req.user.id undefined, and the request is still accepted. A token with no role claim is accepted by requireUser as well.",
+     "evidence": "req.user = { id: claims.sub, role: claims.role };",
+     "file": "admin/auth.js",
+     "fix": "Reject tokens that have no sub claim.",
+     "line": 13,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "booking",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 12555,
+   "error": null,
+   "usage": {
+    "inputTokens": 16581,
+    "cachedInputTokens": 14080,
+    "outputTokens": 842
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "booking.js",
+     "line": 18,
+     "claim": "The capacity check is vulnerable to a race: two requests can read the same taken count, both pass the check, then both insert reservations exceeding capacity.",
+     "evidence": "    const taken = await db.countReservations(eventId);",
+     "fix": "Make capacity validation and insertion one atomic database operation/transaction (for example, lock the event row or use a conditional insert/update that reserves seats only when capacity remains)."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "booking",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 84779,
+   "error": null,
+   "usage": {
+    "inputTokens": 14604,
+    "cachedInputTokens": 0,
+    "outputTokens": 56792
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Non-atomic read of taken capacity and subsequent reservation insertion allows concurrent requests to overbook the event.",
+     "evidence": "    const taken = await db.countReservations(eventId);",
+     "file": "booking.js",
+     "fix": "Execute the capacity check and reservation insertion within a database transaction or lock to prevent concurrent overbooking.",
+     "line": 18,
+     "severity": "high"
+    },
+    {
+     "claim": "Comparing reservation count plus seats to event capacity undercounts booked seats whenever reservations have more than one seat.",
+     "evidence": "    if (taken + seats > event.capacity) {",
+     "file": "booking.js",
+     "fix": "Sum the seats of existing reservations rather than counting reservation rows before comparing against event capacity.",
+     "line": 19,
+     "severity": "high"
+    },
+    {
+     "claim": "seatsLeft subtracts reservation count instead of total booked seats from event capacity.",
+     "evidence": "    return Math.max(0, event.capacity - (await db.countReservations(eventId)));",
+     "file": "booking.js",
+     "fix": "Subtract the sum of all reserved seats from event capacity rather than counting reservations.",
+     "line": 28,
+     "severity": "medium"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "booking",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 44037,
+   "error": null,
+   "usage": {
+    "inputTokens": 27434,
+    "cachedInputTokens": 51392,
+    "outputTokens": 4981
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Race condition between counting reservations and inserting a new reservation can lead to over‑booking.",
+     "evidence": "const taken = await db.countReservations(eventId);\n    if (taken + seats > event.capacity) {\n      throw new BookingError('not enough seats left');\n    }\n    return db.insertReservation({ eventId, userId, seats, createdAt: clock() });",
+     "file": "booking.js",
+     "fix": "Make the reservation insertion atomic in the database (e.g., use a transaction that checks capacity and inserts in one step).",
+     "line": 18,
+     "severity": "high"
+    },
+    {
+     "claim": "Bookings exactly at the event start time are allowed, which may be unintended.",
+     "evidence": "if (event.startsAt <= clock()) throw new BookingError('the event has already started');",
+     "file": "booking.js",
+     "fix": "Change the comparison to `<` if bookings should be blocked at the start time.",
+     "line": 16,
+     "severity": "medium"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "booking",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 11378,
+   "error": null,
+   "usage": {
+    "inputTokens": 8868,
+    "cachedInputTokens": 13653,
+    "outputTokens": 936
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Check-then-act race: the capacity check and the insert are separate async calls with no transaction or lock, so concurrent reserve() calls can both pass the check and oversell the event.",
+     "evidence": "    const taken = await db.countReservations(eventId);",
+     "file": "booking.js",
+     "fix": "Do the count and insert atomically: one transaction with a row lock on the event (SELECT ... FOR UPDATE), or a conditional insert that enforces capacity in SQL or via a unique/constraint.",
+     "line": 21,
+     "severity": "high"
+    },
+    {
+     "claim": "The capacity check adds seats to a count whose unit is unclear. If countReservations returns the number of rows, not the sum of seats, multi-seat bookings are undercounted and the event is oversold. The same problem affects seatsLeft.",
+     "evidence": "    if (taken + seats > event.capacity) {",
+     "file": "booking.js",
+     "fix": "Make the db API return SUM(seats), for example countSeatsTaken, and use it in both reserve and seatsLeft.",
+     "line": 22,
+     "severity": "medium"
+    },
+    {
+     "claim": "The start-time check uses event.startsAt <= clock(). If startsAt is a string or timestamp rather than a Date, the comparison is wrong. clock() is also called twice, so createdAt may differ from the time used for the check. There is no validation of userId.",
+     "evidence": "    if (event.startsAt <= clock()) throw new BookingError('the event has already started');",
+     "file": "booking.js",
+     "fix": "Normalize with new Date(event.startsAt), and call clock() once and reuse the value.",
+     "line": 17,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "signup",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9245,
+   "error": null,
+   "usage": {
+    "inputTokens": 15842,
+    "cachedInputTokens": 15104,
+    "outputTokens": 477
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "signup.js",
+     "line": 15,
+     "claim": "This malformed assignment prevents Node.js from loading the module.",
+     "evidence": "    errors.password = [REDACTED] least ${MIN_PASSWORD} characters`;",
+     "fix": "Replace it with a valid string or template literal, e.g. `errors.password = `at least ${MIN_PASSWORD} characters`;`."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "signup",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 57227,
+   "error": null,
+   "usage": {
+    "inputTokens": 14561,
+    "cachedInputTokens": 0,
+    "outputTokens": 36645
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "EMAIL_RE suffers from catastrophic backtracking (ReDoS) due to nested quantifiers on the local part when validating long strings without an '@' symbol.",
+     "evidence": "const EMAIL_RE = /^([a-zA-Z0-9]+[._-]?)*[a-zA-Z0-9]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+$/;",
+     "file": "signup.js",
+     "fix": "Replace the nested quantifier with a non-backtracking pattern, such as `/^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+$/`.",
+     "line": 4,
+     "severity": "high"
+    },
+    {
+     "claim": "Coercing username to string causes password validation to always fail when username is an empty string, as any password includes an empty substring.",
+     "evidence": "  } else if (password.toLowerCase().includes(String(username).toLowerCase())) {",
+     "file": "signup.js",
+     "fix": "Guard the check to ensure username is a non-empty string: `} else if (typeof username === 'string' && username.length > 0 && password.toLowerCase().includes(username.toLowerCase())) {`",
+     "line": 17,
+     "severity": "medium"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "signup",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 134670,
+   "error": null,
+   "usage": {
+    "inputTokens": 28391,
+    "cachedInputTokens": 271424,
+    "outputTokens": 15079
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "evidence": "    errors.password = [REDACTED] least ${MIN_PASSWORD} characters`;",
+     "line": 16,
+     "fix": "Replace the invalid assignment with a proper template literal string, e.g.: `errors.password = `Password must be at least ${MIN_PASSWORD} characters`;`"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "signup",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 12381,
+   "error": null,
+   "usage": {
+    "inputTokens": 8829,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1178
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Nested quantifier ([a-zA-Z0-9]+[._-]?)* is exponentially backtracking, because the optional separator lets the same alphanumeric run be split many ways. A long alphanumeric local part that fails to match (for example 'aaaa…a!' of about 40 to 250 characters, under the 254 cap) can hang the event loop on unauthenticated input. The 254 length cap does not prevent it.",
+     "evidence": "const EMAIL_RE = /^([a-zA-Z0-9]+[._-]?)*[a-zA-Z0-9]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+$/;",
+     "file": "signup.js",
+     "fix": "Use an unambiguous pattern, for example /^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+$/. Alternatively, check for '@' and the domain with simple string operations.",
+     "line": 4,
+     "severity": "high"
+    },
+    {
+     "claim": "When username is not a string, String(username) gives 'undefined', 'null' or '[object Object]'. A password containing that text then gets a misleading 'contains username' error. An empty-string username is already rejected by USERNAME_RE, but the check would otherwise reject every password in that case.",
+     "evidence": "} else if (password.toLowerCase().includes(String(username).toLowerCase())) {",
+     "file": "signup.js",
+     "fix": "Only run the check when typeof username === 'string' && username.length > 0, or when the username is valid.",
+     "line": 18,
+     "severity": "low"
+    },
+    {
+     "claim": "The line is not valid JavaScript: it has an unterminated template literal and the file will not parse. The material shows [REDACTED] here, which may be a redaction artifact, so this is unverified.",
+     "evidence": "errors.password = [REDACTED] least ${MIN_PASSWORD} characters`;",
+     "file": "signup.js",
+     "fix": "Restore the string, for example `errors.password = `at least ${MIN_PASSWORD} characters`;`.",
+     "line": 15,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "versions",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 12739,
+   "error": null,
+   "usage": {
+    "inputTokens": 16579,
+    "cachedInputTokens": 14080,
+    "outputTokens": 548
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "severity": "high",
+     "file": "versions.js",
+     "line": 19,
+     "claim": "Lexicographic sorting misorders multi-digit numeric components (for example, `1.9.0` sorts after `1.10.0`), causing `latestStable` and therefore `needsUpdate` to use the wrong release.",
+     "evidence": "  stable.sort();",
+     "fix": "Sort parsed versions numerically by major, minor, then patch, or compare versions with a numeric comparator before selecting the maximum."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "versions",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 61996,
+   "error": null,
+   "usage": {
+    "inputTokens": 14606,
+    "cachedInputTokens": 0,
+    "outputTokens": 42669
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Array.prototype.sort() sorts versions lexicographically rather than by semver precedence.",
+     "evidence": "  stable.sort();",
+     "file": "versions.js",
+     "fix": "stable.sort((x, y) => { const a = parse(x), b = parse(y); return a.major - b.major || a.minor - b.minor || a.patch - b.patch; });",
+     "line": 19,
+     "severity": "high"
+    },
+    {
+     "claim": "needsUpdate returns false when current is a prerelease of the same major, minor, and patch version as latestStable.",
+     "evidence": "  return b.patch > a.patch;",
+     "file": "versions.js",
+     "fix": "if (b.patch !== a.patch) return b.patch > a.patch; return a.pre !== null;",
+     "line": 31,
+     "severity": "medium"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "versions",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 85139,
+   "error": null,
+   "usage": {
+    "inputTokens": 27068,
+    "cachedInputTokens": 118080,
+    "outputTokens": 9342
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Lexical sort of version strings leads to incorrect ordering of semver versions.",
+     "evidence": "stable.sort();",
+     "file": "versions.js",
+     "fix": "Replace lexical sort with a semver‑aware comparator, e.g.:\n```js\nstable.sort((a, b) => {\n  const pa = parse(a);\n  const pb = parse(b);\n  if (pa.major !== pb.major) return pa.major - pb.major;\n  if (pa.minor !== pb.minor) return pa.minor - pb.minor;\n  return pa.patch - pb.patch;\n});\n```",
+     "line": 19,
+     "severity": "high"
+    },
+    {
+     "claim": "needsUpdate does not consider pre‑release versions, causing it to miss updates when the current version is a pre‑release and the latest stable has the same numeric version.",
+     "evidence": "return b.patch > a.patch;",
+     "file": "versions.js",
+     "fix": "Add a pre‑release check after the patch comparison so that a pre‑release current version is considered out‑of‑date when the latest stable has the same numeric version but no pre tag, e.g.:\n```js\nif (b.patch !== a.patch) return b.patch > a.patch;\n// Same major/minor/patch – update if current is a pre‑release and latest is stable\nreturn a.pre !== null && b.pre === null;\n```",
+     "line": 31,
+     "severity": "medium"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "versions",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 9607,
+   "error": null,
+   "usage": {
+    "inputTokens": 8833,
+    "cachedInputTokens": 13653,
+    "outputTokens": 914
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Default string sort is lexicographic, not semver: '1.9.0' sorts after '1.10.0' and '9.0.0' after '10.0.0'. latestStable returns the wrong version, so needsUpdate returns false when a newer release exists.",
+     "evidence": "  stable.sort();",
+     "file": "versions.js",
+     "fix": "Sort with a numeric semver comparator using parse(): compare major, then minor, then patch, e.g. stable.sort((x,y)=>{const a=parse(x),b=parse(y);return a.major-b.major||a.minor-b.minor||a.patch-b.patch;});",
+     "line": 20,
+     "severity": "high"
+    },
+    {
+     "claim": "isStable and latestStable call String(v).trim() on non-string input in different ways; parse() already handles this, but a non-array or null element makes latestStable throw or misbehave. More importantly, the pre-release check ignores build metadata ('+build'), so valid semver like 1.2.3+build is rejected as unparseable and silently excluded from stable.",
+     "evidence": "const SEMVER = /^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/;",
+     "file": "versions.js",
+     "fix": "Allow an optional build suffix: (?:\\+[0-9A-Za-z.-]+)? before the $.",
+     "line": 10,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "clean-split",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 10010,
+   "error": null,
+   "usage": {
+    "inputTokens": 16580,
+    "cachedInputTokens": 14080,
+    "outputTokens": 899
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-split",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 139139,
+   "error": null,
+   "usage": {
+    "inputTokens": 14594,
+    "cachedInputTokens": 0,
+    "outputTokens": 97187
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-split",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 15024,
+   "error": null,
+   "usage": {
+    "inputTokens": 11799,
+    "cachedInputTokens": 12288,
+    "outputTokens": 1251
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-split",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 17566,
+   "error": null,
+   "usage": {
+    "inputTokens": 8832,
+    "cachedInputTokens": 13653,
+    "outputTokens": 2000
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "The precision is derived from the untrusted exponent. A string like '1e999999999' gives a huge ctx.prec and can exhaust memory or hang. A value like '1e999999' raises decimal.Overflow, not ValueError, when multiplied by 100 under the inherited Emax.",
+     "evidence": "ctx.prec = len(digits) + max(0, exponent) + 10",
+     "file": "split_bill.py",
+     "fix": "Reject out-of-range input before the multiplication, for example `if exponent > 20: raise ValueError(...)`. Alternatively, do the integer arithmetic exactly with `amount.scaleb(2)` and a bounded Emax.",
+     "line": 22,
+     "severity": "medium"
+    },
+    {
+     "claim": "Shares are not quantized to cents. Decimal(100)/100 gives Decimal('1') and Decimal(150)/100 gives Decimal('1.5'). Callers that print or serialize the result get inconsistent formats such as '1' or '1.5' instead of '1.00' or '1.50'.",
+     "evidence": "return [Decimal(base + (1 if i < extra else 0)) / 100 for i in range(people)]",
+     "file": "split_bill.py",
+     "fix": "Use `Decimal(base + (1 if i < extra else 0)).scaleb(-2)`. Decimal(n).scaleb(-2) keeps the exponent at -2, so 100 gives '1.00'.",
+     "line": 27,
+     "severity": "low"
+    },
+    {
+     "claim": "`people` is not type-checked. A float such as 2.5 passes the check, divmod returns floats, and range() then raises TypeError. A bool is silently accepted.",
+     "evidence": "if people < 1:",
+     "file": "split_bill.py",
+     "fix": "Add `if not isinstance(people, int) or isinstance(people, bool): raise ValueError(...)`.",
+     "line": 11,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "clean-keyset",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 10885,
+   "error": null,
+   "usage": {
+    "inputTokens": 16517,
+    "cachedInputTokens": 16128,
+    "outputTokens": 343
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-keyset",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 81657,
+   "error": null,
+   "usage": {
+    "inputTokens": 14537,
+    "cachedInputTokens": 0,
+    "outputTokens": 55708
+   },
+   "verdict": "block",
+   "findings": [
+    {
+     "claim": "Setting row_factory on a Cursor object raises an AttributeError because row_factory is an attribute of Connection, not Cursor.",
+     "evidence": "    cur.row_factory = sqlite3.Row",
+     "file": "keyset.py",
+     "fix": "Set conn.row_factory = sqlite3.Row on the connection or access row columns by index.",
+     "line": 13,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "clean-keyset",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 31087,
+   "error": null,
+   "usage": {
+    "inputTokens": 24522,
+    "cachedInputTokens": 25280,
+    "outputTokens": 3078
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Row factory is incorrectly set on cursor, causing rows to be default tuples instead of sqlite3.Row.",
+     "evidence": "cur.row_factory = sqlite3.Row",
+     "file": "keyset.py",
+     "fix": "Set the row_factory on the connection (e.g., `conn.row_factory = sqlite3.Row`) before creating the cursor and remove the incorrect `cur.row_factory = sqlite3.Row` line.",
+     "line": 13,
+     "severity": "high"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "clean-keyset",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 11719,
+   "error": null,
+   "usage": {
+    "inputTokens": 8801,
+    "cachedInputTokens": 13653,
+    "outputTokens": 889
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "int(limit) raises TypeError/ValueError on None or non-numeric input instead of falling back to the default, so a missing limit from a caller crashes rather than defaulting.",
+     "evidence": "    limit = max(1, min(int(limit), MAX_LIMIT))",
+     "file": "keyset.py",
+     "fix": "Handle None/invalid limit explicitly (e.g. try/except, default to 20) or validate at the API boundary.",
+     "line": 12,
+     "severity": "low"
+    },
+    {
+     "claim": "Cursor is derived from the last row of the page; if rows are empty and has_more is False this is safe, but the cursor is silently None for any caller who expects a cursor on the final page, and a non-integer after_id raises an uncaught ValueError from int().",
+     "evidence": "            (int(after_id), limit + 1),",
+     "file": "keyset.py",
+     "fix": "Validate after_id and raise a clear error (or treat invalid as None) before querying.",
+     "line": 28,
+     "severity": "low"
+    },
+    {
+     "claim": "Setting row_factory on a cursor works, but the returned sqlite3.Row objects are tied to the cursor/connection shape and the cursor is never closed; minor resource handling issue.",
+     "evidence": "    cur.row_factory = sqlite3.Row",
+     "file": "keyset.py",
+     "fix": "Close the cursor after fetchall (contextlib.closing) or use conn.execute with a local row_factory.",
+     "line": 14,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "clean-backoff",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 13363,
+   "error": null,
+   "usage": {
+    "inputTokens": 16554,
+    "cachedInputTokens": 14080,
+    "outputTokens": 575
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-backoff",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 108789,
+   "error": null,
+   "usage": {
+    "inputTokens": 14584,
+    "cachedInputTokens": 0,
+    "outputTokens": 71932
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-backoff",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 73252,
+   "error": null,
+   "usage": {
+    "inputTokens": 26118,
+    "cachedInputTokens": 63104,
+    "outputTokens": 8128
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-backoff",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 11701,
+   "error": null,
+   "usage": {
+    "inputTokens": 8846,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1130
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "claim": "Only errors with an HTTP status are retried. Transient network failures (ECONNRESET, ETIMEDOUT, fetch TypeError) have no status, so they are never retried.",
+     "evidence": "const retryable = RETRYABLE.has(err && err.status);",
+     "file": "backoff.js",
+     "fix": "Also treat err.code values such as ECONNRESET, ETIMEDOUT, EAI_AGAIN and ECONNREFUSED as retryable. Alternatively, accept a user-supplied isRetryable predicate.",
+     "line": 20,
+     "severity": "medium"
+    },
+    {
+     "claim": "Full jitter can pick a delay near 0 ms, so a retry can fire almost immediately. A server's Retry-After header on 429/503 is also ignored.",
+     "evidence": "await sleep(Math.floor(random() * ceiling));",
+     "file": "backoff.js",
+     "fix": "Honor err.retryAfterMs when present, for example Math.max(retryAfter, jittered). Optionally add a minimum delay floor.",
+     "line": 22,
+     "severity": "low"
+    },
+    {
+     "claim": "baseMs and capMs are not validated. A negative, NaN or undefined value gives NaN, and setTimeout treats NaN as 0, so retries fire immediately without any error. Only maxAttempts is checked.",
+     "evidence": "if (!Number.isInteger(maxAttempts) || maxAttempts < 1) throw new RangeError('maxAttempts must be a positive integer');",
+     "file": "backoff.js",
+     "fix": "Validate that baseMs and capMs are finite and >= 0. Also validate that random is a function.",
+     "line": 15,
+     "severity": "low"
+    },
+    {
+     "claim": "There is no AbortSignal or overall deadline. A caller cannot cancel the loop during a sleep, and the retries are not bounded by total time.",
+     "evidence": "return await fn(attempt);",
+     "file": "backoff.js",
+     "fix": "Accept a signal option, check it before each attempt, and make the sleep abortable.",
+     "line": 18,
+     "severity": "low"
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "clean-slug",
+   "lane": "codex",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "codex",
+   "model": "gpt-5.6-terra",
+   "ms": 9312,
+   "error": null,
+   "usage": {
+    "inputTokens": 15851,
+    "cachedInputTokens": 15104,
+    "outputTokens": 387
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-slug",
+   "lane": "gemini",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "gemini",
+   "model": "gemini-3.8-flash-high",
+   "ms": 127105,
+   "error": null,
+   "usage": {
+    "inputTokens": 14567,
+    "cachedInputTokens": 0,
+    "outputTokens": 86751
+   },
+   "verdict": "approve",
+   "findings": []
+  },
+  {
+   "run": 1,
+   "id": "clean-slug",
+   "lane": "oss",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "oss",
+   "model": "gpt-oss-120b-medium",
+   "ms": 68157,
+   "error": null,
+   "usage": {
+    "inputTokens": 25620,
+    "cachedInputTokens": 100608,
+    "outputTokens": 7525
+   },
+   "verdict": "approve_with_changes",
+   "findings": [
+    {
+     "evidence": "if (suffix.length >= MAX_LENGTH) throw new RangeError('no free slug left for this title');",
+     "line": 25,
+     "fix": "Change the condition to `if (suffix.length > MAX_LENGTH) throw new RangeError('no free slug left for this title');` so that a suffix whose length exactly equals `MAX_LENGTH` is allowed."
+    }
+   ]
+  },
+  {
+   "run": 1,
+   "id": "clean-slug",
+   "lane": "claude",
+   "retries": 0,
+   "ok": true,
+   "servedBy": "claude",
+   "model": "claude-sonnet-5-5-medium",
+   "ms": 15429,
+   "error": null,
+   "usage": {
+    "inputTokens": 8854,
+    "cachedInputTokens": 13653,
+    "outputTokens": 1573
+   },
+   "verdict": "approve",
+   "findings": [
+    {
+     "claim": "Letters with no NFKD decomposition (ß, ø, æ, đ, ł) are dropped or turned into separators instead of transliterated. For example, 'Straße' becomes 'stra-e', and titles made only of such letters collapse to 'item'.",
+     "evidence": "    .replace(/[^a-z0-9]+/g, '-')",
+     "file": "slug.js",
+     "fix": "Add a small transliteration map before the strip step (ß→ss, ø→o, æ→ae, đ→d, ł→l), or document that these letters are lost.",
+     "line": 8,
+     "severity": "low"
+    },
+    {
+     "claim": "The RangeError can only fire once n has about 79 digits, which is never reached in practice. The documented 'no free slug left' guard is effectively dead, and a very large `taken` set is simply scanned linearly.",
+     "evidence": "    if (suffix.length >= MAX_LENGTH) throw new RangeError('no free slug left for this title');",
+     "file": "slug.js",
+     "fix": "Remove the guard, or cap n at a sensible limit and throw once it is reached.",
+     "line": 23,
+     "severity": "low"
+    }
+   ]
+  }
+ ]
+}

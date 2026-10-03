@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="356" viewBox="0 0 760 356" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-label="Seeded bugs found, out of 12">
+<title>Seeded bugs found, out of 12</title>
+<rect width="760" height="356" rx="8" fill="#fcfcfb"/>
+<text x="20" y="30" font-size="16" font-weight="600" fill="#0b0b0b">Seeded bugs found, out of 12</text>
+<text x="20" y="52" font-size="12.5" fill="#52514e">Same prompt, same files, 3 run(s). A bug counts only if the finding names it at the right line.</text>
+<line x1="270" y1="68" x2="270" y2="320" stroke="#e7e6e2" stroke-width="1"/>
+<text x="270" y="336" font-size="11" text-anchor="middle" fill="#52514e">0</text>
+<line x1="359" y1="68" x2="359" y2="320" stroke="#e7e6e2" stroke-width="1"/>
+<text x="359" y="336" font-size="11" text-anchor="middle" fill="#52514e">3</text>
+<line x1="448" y1="68" x2="448" y2="320" stroke="#e7e6e2" stroke-width="1"/>
+<text x="448" y="336" font-size="11" text-anchor="middle" fill="#52514e">6</text>
+<line x1="537" y1="68" x2="537" y2="320" stroke="#e7e6e2" stroke-width="1"/>
+<text x="537" y="336" font-size="11" text-anchor="middle" fill="#52514e">9</text>
+<line x1="626" y1="68" x2="626" y2="320" stroke="#e7e6e2" stroke-width="1"/>
+<text x="626" y="336" font-size="11" text-anchor="middle" fill="#52514e">12</text>
+<text x="258" y="87" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="400">Claude Sonnet 5.5</text>
+<path d="M270,74 H622 Q626,74 626,78 V88 Q626,92 622,92 H270 Z" fill="#8b8a85"/>
+<text x="634" y="87" font-size="12.5" fill="#0b0b0b">12</text>
+<text x="258" y="123" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="400">Codex GPT-5.6 Terra</text>
+<path d="M270,110 H592.3333333333333 Q596.3333333333333,110 596.3333333333333,114 V124 Q596.3333333333333,128 592.3333333333333,128 H270 Z" fill="#8b8a85"/>
+<text x="604.3333333333333" y="123" font-size="12.5" fill="#0b0b0b">11</text>
+<text x="258" y="159" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="400">Gemini 3.8 Flash</text>
+<path d="M270,146 H612.1111111111111 Q616.1111111111111,146 616.1111111111111,150 V160 Q616.1111111111111,164 612.1111111111111,164 H270 Z" fill="#8b8a85"/>
+<text x="624.1111111111111" y="159" font-size="12.5" fill="#0b0b0b">11.7 (runs: 12, 12, 11)</text>
+<text x="258" y="195" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="400">GPT-OSS 120B</text>
+<path d="M270,182 H523.1111111111111 Q527.1111111111111,182 527.1111111111111,186 V196 Q527.1111111111111,200 523.1111111111111,200 H270 Z" fill="#8b8a85"/>
+<text x="535.1111111111111" y="195" font-size="12.5" fill="#0b0b0b">8.7 (runs: 9, 8, 9)</text>
+<text x="258" y="231" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="600">Gauntlet council, any family</text>
+<path d="M270,218 H622 Q626,218 626,222 V232 Q626,236 622,236 H270 Z" fill="#2a78d6"/>
+<text x="634" y="231" font-size="12.5" fill="#0b0b0b">12</text>
+<text x="258" y="267" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="600">Gauntlet council, 2+ families agree</text>
+<path d="M270,254 H582.4444444444443 Q586.4444444444443,254 586.4444444444443,258 V268 Q586.4444444444443,272 582.4444444444443,272 H270 Z" fill="#2a78d6"/>
+<text x="594.4444444444443" y="267" font-size="12.5" fill="#0b0b0b">10.7 (runs: 11, 11, 10)</text>
+<text x="258" y="303" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="600">Claude + Gauntlet council, 2+ of 4 agree</text>
+<path d="M270,290 H622 Q626,290 626,294 V304 Q626,308 622,308 H270 Z" fill="#2a78d6"/>
+<text x="634" y="303" font-size="12.5" fill="#0b0b0b">12</text>
+</svg>

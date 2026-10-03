@@ -23,7 +23,7 @@
     "codex": { "enabled": true },
     "gemini": { "enabled": true },
     "oss": { "enabled": true },
-    "claude": { "enabled": true, "model": "claude-sonnet-4-6" }
+    "claude": { "enabled": true, "model": "claude-sonnet-5-5-medium" }
   },
   "fallback": {
     "crossFamily": true

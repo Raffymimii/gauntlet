@@ -104,7 +104,7 @@ reads those transcripts and, for each review, checks three things:
 - what did Claude do next: edit a file the finding named, or call it a false positive.
 
 I ran it on three weeks of my own sessions on two machines: 73 sessions, Claude Opus 5 and
-5.5, real projects (a Next.js ERP, Minecraft plugins, this tool itself).
+5.5, real projects.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/bench/real-world-dark.svg">

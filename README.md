@@ -8,6 +8,10 @@ Codex, Gemini and GPT-OSS review what Claude Code writes. Every finding has to q
 line it's about, and Gauntlet checks that quote against your files before Claude reads it.
 It runs on the ChatGPT and Google plans you already pay for. No API keys.
 
+**In 157 real reviews of code Claude Opus had just written, another model family found a
+serious issue 62% of the time, and Claude went on to change the flagged file in 95% of those
+cases.** [How that was measured](#does-it-actually-help)
+
 [![CI](https://github.com/Raffymimii/gauntlet/actions/workflows/ci.yml/badge.svg)](https://github.com/Raffymimii/gauntlet/actions/workflows/ci.yml)
 ![Node 20+](https://img.shields.io/badge/node-20%2B-339933)
 ![MCP](https://img.shields.io/badge/MCP-server-6E56CF)
@@ -86,12 +90,52 @@ pick it up on their next message, without a restart. It's the part I'm proudest 
 and the one I'd point a curious engineer at first. See
 [architecture](docs/architecture.md).
 
-## Benchmark
+## Does it actually help?
 
-I wanted numbers, not adjectives, so I built a small benchmark and ran it against the
-live models: 16 code samples, 4 reviewers, 3 runs, 192 reviews in all.
+I use Claude Opus every day, and I wanted to know whether the second opinions were worth
+the wait. There are two ways to measure it, and the answers differ in an interesting way.
 
-Twelve samples have one bug I planted on purpose, and they're not textbook ones:
+### On real work
+
+Claude Code keeps every session on disk. [`bench/real-world.mjs`](bench/real-world.mjs)
+reads those transcripts and, for each review, checks three things:
+- was the reviewed code Claude's own, written earlier in that same session;
+- did the review raise a serious issue (critical, high or medium);
+- what did Claude do next: edit a file the finding named, or call it a false positive.
+
+I ran it on three weeks of my own sessions on two machines: 73 sessions, Claude Opus 5 and
+5.5, real projects (a Next.js ERP, Minecraft plugins, this tool itself).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/bench/real-world-dark.svg">
+  <img alt="Real sessions: 157 reviews of code Claude had just written; 98 (62%) found a serious issue; Claude then changed the flagged file after 93 of them (95%); Claude called 2 of them (2%) a false positive" src="docs/bench/real-world-light.svg">
+</picture>
+
+In 157 reviews of code Claude had just written and was ready to move on from, another
+model family found a serious issue **62% of the time**. Claude then edited the file the
+finding named in 95% of those cases, and dismissed 2 of 98 as false positives.
+
+That matches what using it feels like. I've almost stopped reporting bugs to Claude myself.
+What's left are misunderstandings about what I asked for, not mistakes in the code.
+
+The method has limits, and you should know them:
+- "Edited the flagged file" means Claude changed a file the finding named, after the
+  review and before the next one. That's a strong sign the finding was accepted, but it
+  doesn't prove each edit fixed exactly that finding.
+- The data is from one developer's sessions.
+
+The script is in the repo, so run it on your own history and see what you get:
+
+```bash
+node bench/real-world.mjs ~/.claude/projects
+```
+
+### A controlled benchmark
+
+I also wanted a test anyone can rerun, so I planted bugs in 16 code samples and gave the
+same files to four reviewers, three times each: 192 reviews.
+
+Twelve samples have one bug I put there on purpose, and they're not textbook ones:
 - an LRU cache that never refreshes recency;
 - a semaphore that leaks a permit on cache hits;
 - cents passed to an API that expects euros, across two files;
@@ -101,11 +145,10 @@ Twelve samples have one bug I planted on purpose, and they're not textbook ones:
 - a ReDoS-prone regex;
 - and five more.
 
-The other four files are correct. Before the run, three model families checked them and
-found nothing, and they're there to count false alarms. Every reviewer got the same prompt
-and the same files. A bug only counts as found when the finding points at the right lines
-**and** names the actual problem. The method, the corpus and the raw answers are all in
-the repo; see [docs/benchmark.md](docs/benchmark.md).
+The other four files are correct. Three model families checked them and found nothing, and
+they're there to count false alarms. A bug only counts as found when the finding points at
+the right lines **and** names the actual problem. The method, the corpus and the raw answers
+are in [docs/benchmark.md](docs/benchmark.md).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/bench/false-alarms-dark.svg">
@@ -117,19 +160,20 @@ the repo; see [docs/benchmark.md](docs/benchmark.md).
   <img alt="Seeded bugs found out of 12: Claude Sonnet 5.5 12, Codex 11, Gemini 11.7, GPT-OSS 8.7, Gauntlet council any family 12, council with 2+ families agreeing 10.7, Claude plus council with 2 of 4 agreeing 12" src="docs/bench/bugs-found-light.svg">
 </picture>
 
-What I take from it:
+What the controlled test shows, and why it differs from the real sessions:
 
-- **Frontier models find most single-file bugs on their own.** Claude found all 12 every
-  time, and Gemini nearly all. I wasn't expecting that, and I'm not going to pretend
-  otherwise. Gauntlet isn't about finding more bugs than a good model already does.
-- **What it fixes is noise.** Claude alone raised 2 false alarms per run on code with
-  nothing wrong in it. Add the council and keep only what at least two of the four
-  families agree on, and you still get 12 of 12 bugs with 0.7 false alarms per run. That
-  is a third of the noise, without losing a single bug.
-- **Single reviewers have fixed blind spots.** Codex missed the ReDoS in all three runs.
-  GPT-OSS missed the mutable default argument every time. Another family covers those.
-- **Made-up findings are rare but real.** About 2-8% of findings from Claude, Codex and
-  GPT-OSS quoted code that isn't in the file (Gemini: none). Gauntlet looks up every
+- **Here Claude found every planted bug on its own.** These bugs were written by me, in
+  short self-contained files, and Claude was asked to look for them. That is the easy case.
+  On real work, Claude is reviewing code it wrote itself, minutes earlier, in the middle of
+  a long task, convinced it's right. That's where the 62% above comes from, and no
+  synthetic test I can build reproduces it well.
+- **The council cuts the noise.** Claude alone raised 2 false alarms per run on code with
+  nothing wrong in it. Keep only what at least two of four families agree on, and you still
+  get 12 of 12 bugs with 0.7 false alarms per run.
+- **Each reviewer has fixed blind spots.** Codex missed the ReDoS in all three runs, and
+  GPT-OSS missed the mutable default argument every time. A different family covers them.
+- **Made-up findings are rare but real.** 2-8% of the findings from Claude, Codex and
+  GPT-OSS quoted code that isn't in the file. Gemini had none. Gauntlet looks up every
   quote and labels those before Claude reads them:
 
 <picture>

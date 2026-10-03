@@ -95,6 +95,23 @@ const charts = {
   },
 };
 
+const realPath = path.join(HERE, 'results', 'real-world.json');
+if (fs.existsSync(realPath)) {
+  const t = JSON.parse(fs.readFileSync(realPath, 'utf8')).total;
+  charts['real-world'] = {
+    title: 'Real sessions: reviews of code Claude had just written',
+    subtitle: `${t.sessions} sessions, Claude Opus 5 and 5.5, real projects. Serious = critical, high or medium. Counted by bench/real-world.mjs.`,
+    rows: [
+      { label: "Reviews of Claude's own code", value: t.ownCode, display: String(t.ownCode), emphasis: false },
+      { label: 'Found a serious issue', value: t.ownSerious, display: `${t.ownSerious}  (${Math.round((100 * t.ownSerious) / t.ownCode)}%)`, emphasis: true },
+      { label: 'Claude changed the flagged file', value: t.changed, display: `${t.changed}  (${Math.round((100 * t.changed) / t.ownSerious)}% of those)`, emphasis: true },
+      { label: 'Claude called it a false positive', value: t.rejected, display: `${t.rejected}  (${Math.round((100 * t.rejected) / t.ownSerious)}%)`, emphasis: false },
+    ],
+    max: t.ownCode * 1.25,
+    ticks: [],
+  };
+}
+
 fs.mkdirSync(OUT, { recursive: true });
 for (const [name, spec] of Object.entries(charts)) {
   for (const theme of Object.keys(THEMES)) {

@@ -1,5 +1,10 @@
 # Benchmark
 
+This page is about the controlled benchmark. The numbers from real sessions (how often a
+second family finds a serious issue in code Claude has just written, and what Claude does
+next) come from [`bench/real-world.mjs`](../bench/real-world.mjs) and are summarised in the
+[README](../README.md#on-real-work).
+
 The question: hand the same code to one model, or to Gauntlet's council, and what comes
 back? How many real bugs, how many false alarms, and how many findings pointing at code
 that doesn't exist?

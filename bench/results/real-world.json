@@ -1,0 +1,8 @@
+{
+  "note": "Counts from bench/real-world.mjs run on the author's own Claude Code transcripts (Claude Opus 5 and 5.5), two machines, September 11 to October 3, 2026. Only these aggregates are published.",
+  "machines": {
+    "pc": { "sessions": 12, "reviews": 41, "ownCode": 28, "ownSerious": 20, "changed": 19, "rejected": 1, "accepted": 11, "noComment": 8 },
+    "server": { "sessions": 61, "reviews": 205, "ownCode": 129, "ownSerious": 78, "changed": 74, "rejected": 1, "accepted": 31, "noComment": 46 }
+  },
+  "total": { "sessions": 73, "reviews": 246, "ownCode": 157, "ownSerious": 98, "changed": 93, "rejected": 2, "accepted": 42, "noComment": 54 }
+}

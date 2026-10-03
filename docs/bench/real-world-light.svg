@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="248" viewBox="0 0 760 248" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-label="Real sessions: reviews of code Claude had just written">
+<title>Real sessions: reviews of code Claude had just written</title>
+<rect width="760" height="248" rx="8" fill="#fcfcfb"/>
+<text x="20" y="30" font-size="16" font-weight="600" fill="#0b0b0b">Real sessions: reviews of code Claude had just written</text>
+<text x="20" y="52" font-size="12.5" fill="#52514e">73 sessions, Claude Opus 5 and 5.5, real projects. Serious = critical, high or medium. Counted by bench/real-world.mjs.</text>
+<text x="258" y="87" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="400">Reviews of Claude's own code</text>
+<path d="M270,74 H550.8 Q554.8,74 554.8,78 V88 Q554.8,92 550.8,92 H270 Z" fill="#8b8a85"/>
+<text x="562.8" y="87" font-size="12.5" fill="#0b0b0b">157</text>
+<text x="258" y="123" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="600">Found a serious issue</text>
+<path d="M270,110 H443.77324840764334 Q447.77324840764334,110 447.77324840764334,114 V124 Q447.77324840764334,128 443.77324840764334,128 H270 Z" fill="#2a78d6"/>
+<text x="455.77324840764334" y="123" font-size="12.5" fill="#0b0b0b">98  (62%)</text>
+<text x="258" y="159" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="600">Claude changed the flagged file</text>
+<path d="M270,146 H434.7031847133758 Q438.7031847133758,146 438.7031847133758,150 V160 Q438.7031847133758,164 434.7031847133758,164 H270 Z" fill="#2a78d6"/>
+<text x="446.7031847133758" y="159" font-size="12.5" fill="#0b0b0b">93  (95% of those)</text>
+<text x="258" y="195" font-size="13" text-anchor="end" fill="#0b0b0b" font-weight="400">Claude called it a false positive</text>
+<path d="M270,182 H270 Q273.628025477707,182 273.628025477707,185.628025477707 V196.371974522293 Q273.628025477707,200 270,200 H270 Z" fill="#8b8a85"/>
+<text x="281.628025477707" y="195" font-size="12.5" fill="#0b0b0b">2  (2%)</text>
+</svg>

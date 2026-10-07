@@ -77,9 +77,9 @@ got fixed in the next commit. That's the whole idea in one screen.
   call goes to the smaller model of the same family, then to another family, then to
   Claude through Antigravity. A model that just failed sits out for a while, so the next
   call doesn't wait on it again.
-- Four read-only Claude subagents (`haiku-navigator`, `sonnet-reviewer`, `opus-architect`,
-  and `sonnet-test-analyst`, which is opt-in) for when you'd rather stay in the Claude
-  family.
+- Four read-only Claude subagents (`haiku-navigator` on Claude Haiku 5.5, `sonnet-reviewer`,
+  `opus-architect`, and `sonnet-test-analyst`, which is opt-in) for when you'd rather stay
+  in the Claude family. See [subagent models](docs/configuration.md#subagent-models).
 - Optional hooks:
   - a pre-turn hook that runs a small pipeline of internal agents (comprehension,
     anti-hallucination, text review, jury, legal, learning);

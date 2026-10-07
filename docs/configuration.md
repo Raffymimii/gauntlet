@@ -35,6 +35,23 @@ If the file isn't valid JSON, Gauntlet uses the defaults and `gauntlet status` s
 `GAUNTLET_HOME` moves the whole data directory, which is handy for tests or for keeping
 two setups apart.
 
+## Subagent models
+
+The subagents in `claude/agents` name their model by alias (`haiku`, `sonnet`, `opus`),
+so they follow whatever Claude Code maps that alias to. From Claude Code 2.1.293, `haiku` is
+Claude Haiku 5.5. On an older version it is still Haiku 4.5. To use 5.5 anyway, add this to
+`~/.claude/settings.json`:
+
+```json
+{
+  "env": { "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-5-5" }
+}
+```
+
+Claude Code picks up `settings.json` changes while running, so chats that are already open
+switch on their next subagent call. No restart is needed. `ANTHROPIC_DEFAULT_SONNET_MODEL`
+and `ANTHROPIC_DEFAULT_OPUS_MODEL` work the same way for the other two aliases.
+
 ## Runtime configuration
 
 The internal agents, routing and policy are versioned separately. See the Runtime

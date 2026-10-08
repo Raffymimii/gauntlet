@@ -32,7 +32,7 @@ function unlinkQuietly(file) {
 
 // --------------------------------------------------------------------- codex
 
-export async function callCodex({ packet, workdir, model, effort, timeoutMs, schema }) {
+export async function callCodex({ packet, workdir, model, effort, timeoutMs, schema, signal }) {
   const p = config.providers.codex;
   const lastMessage = tmpFile('gauntlet-codex', '.txt');
   const schemaFile = writeSchema(schema, 'gauntlet-codex-schema');
@@ -61,6 +61,7 @@ export async function callCodex({ packet, workdir, model, effort, timeoutMs, sch
   try {
     const r = await run(bin.command, [...bin.prefixArgs, ...args], {
       cwd: workdir,
+      signal,
       stdin: packet,
       timeoutMs,
       maxOutputChars: config.limits.maxOutputChars,
@@ -103,7 +104,7 @@ function codexAnswerFromEvents(stdout) {
  * is visible to other users in the process list, and Windows caps a command line at
  * about 32k characters.
  */
-export async function callAntigravity({ packet, workdir, model, timeoutMs, schema }) {
+export async function callAntigravity({ packet, workdir, model, timeoutMs, schema, signal }) {
   const p = config.providers.antigravity;
   const bin = resolveCommand(p.command || 'agy');
   const schemaFile = writeSchema(schema, 'gauntlet-agy-schema');
@@ -124,6 +125,7 @@ export async function callAntigravity({ packet, workdir, model, timeoutMs, schem
   try {
     const r = await run(bin.command, args, {
       cwd: workdir,
+      signal,
       stdin: `${JSON.stringify({ event: 'user', message: { role: 'user', content: packet } })}\n`,
       timeoutMs,
       // The event stream repeats the answer (response and structured_output) next to a
@@ -154,6 +156,8 @@ export function antigravityResult(stdout) {
 }
 
 function finishAntigravity(r, schema) {
+  // Cancelled by the caller: nobody is waiting for this answer.
+  if (r.aborted) throw new RunError('aborted', 'antigravity was cancelled: another model answered first');
   if (r.timedOut) throw new RunError('timeout', 'antigravity ran out of time and was stopped');
   const res = antigravityResult(r.stdout);
   const detail = { exitCode: r.code, stderrTail: tail(r.stderr, 600) };
@@ -196,6 +200,7 @@ function tail(s, n) {
 }
 
 function finishCodex(r, answer, schema) {
+  if (r.aborted) throw new RunError('aborted', 'codex was cancelled: another model answered first');
   if (r.timedOut) throw new RunError('timeout', 'codex ran out of time and was stopped');
   // Only error-looking stdout lines count: Codex reports its rate-limit headroom on every
   // successful turn, and that must not read as a quota failure.

@@ -32,3 +32,22 @@ test('cooldowns are recorded and cleared', () => {
   markSuccess('codex:test-model');
   assert.equal(coolingDown('codex:test-model'), null);
 });
+
+test('a cancelled call is killed at once and says so', async () => {
+  const { run } = await import('../src/process.mjs');
+  const controller = new AbortController();
+  const t0 = Date.now();
+  setTimeout(() => controller.abort(), 200);
+  const r = await run(process.execPath, ['-e', 'setTimeout(() => {}, 120000)'], { timeoutMs: 120000, signal: controller.signal });
+  assert.equal(r.aborted, true);
+  assert.ok(Date.now() - t0 < 15000, 'the child outlived its cancellation');
+});
+
+test('a call cancelled before it starts never spawns anything', async () => {
+  const { run } = await import('../src/process.mjs');
+  const controller = new AbortController();
+  controller.abort();
+  const r = await run('a-command-that-does-not-exist', [], { signal: controller.signal });
+  assert.equal(r.aborted, true);
+  assert.equal(r.code, null);
+});

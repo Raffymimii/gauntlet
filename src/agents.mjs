@@ -9,7 +9,7 @@
 // Claude is waiting for this result. The time budget is shared across the chain so the
 // next family always has time left.
 import { buildPacket, resolveWorkdir } from './packet.mjs';
-import { buildChain, coolingDown, markFailure, markSuccess, callModel } from './router.mjs';
+import { buildChain, coolingDown, markFailure, markSuccess, callModel, NO_COOLDOWN } from './router.mjs';
 import { RunError } from './process.mjs';
 import { AGENT_SCHEMAS } from './schemas.mjs';
 import { extractJson, hasRequiredKeys, completeShape } from './json.mjs';
@@ -21,6 +21,8 @@ const FALLTHROUGH = new Set(['quota', 'model_unavailable', 'auth', 'spawn_failed
 const MAX_INPUT_CHARS = 60000;
 const MAX_PACKET_CHARS = 72000;
 const MIN_ATTEMPT_MS = 8000;
+/** How long the model in front may think alone before the next family starts beside it. */
+const HEDGE_FRACTION = 0.4;
 
 const FORMAT = 'Answer with the JSON object the schema describes, and nothing else. Write string values in the language of the input. Empty lists are fine answers.';
 const REMINDER = '\n\n# REMINDER\nYour previous answer was not the JSON object required. Do not explore, use tools or ask anything: reply now with ONLY the JSON object the schema describes, from the material above.';
@@ -83,34 +85,93 @@ export async function runAgent({ id, snapshot, input, objective, workdir, paths 
   }
 
   const deadline = started + agent.timeoutMs;
-  const queue = agentChain(agent).map((s) => ({ s }));
+  // Hedged, not queued. Every model gets the whole budget that is left, and when the one in
+  // front is still thinking after `hedgeAfter` the next family starts beside it rather than
+  // behind it: the first good answer wins and the losers are cancelled. Dividing the budget
+  // between the models instead, as this did at first, means a slow leader leaves the next
+  // one too little time to answer at all, and the agent comes back empty while two working
+  // models sit behind it.
+  const hedgeAfter = Math.max(MIN_ATTEMPT_MS, Math.round(agent.timeoutMs * HEDGE_FRACTION));
+  const chain = agentChain(agent);
+  const queue = chain.map((s) => ({ s }));
+  const live = new Map();
   const attempts = [];
+  let next = 0;
   let forcedLastResort = false;
   let reminded = false;
+  let stopLaunching = false;
 
-  for (let i = 0; i < queue.length; i++) {
-    const { s, force, remind } = queue[i];
-    const cool = force ? null : coolingDown(s.key);
-    if (cool) {
-      attempts.push({ key: s.key, skipped: true, reason: cool.kind });
-      // Everything paused: give the last resort one try anyway. A pause recorded minutes
-      // ago should not leave Claude with no answer while there is still time to ask.
-      if (i === queue.length - 1 && !forcedLastResort) { queue.push({ s, force: true }); forcedLastResort = true; }
+  /** Starts one call. The promise always resolves: an outcome, never a throw. */
+  function launch(entry) {
+    const { s, remind } = entry;
+    const id2 = `${s.key}#${Date.now().toString(36)}`;
+    const controller = new AbortController();
+    const startedAt = Date.now();
+    const promise = (async () => {
+      try {
+        const result = await callModel(s, {
+          packet: remind ? packet.text + REMINDER : packet.text,
+          workdir: dir, schema, signal: controller.signal,
+          timeoutMs: Math.max(MIN_ATTEMPT_MS, deadline - Date.now()),
+        });
+        const raw = result.json || extractJson(result.text);
+        const json = hasRequiredKeys(raw, schema) ? raw : completeShape(raw, schema);
+        if (!json) return { id2, ok: false, kind: 'schema' };
+        return { id2, ok: true, json, usage: result.usage || null };
+      } catch (err) {
+        return { id2, ok: false, kind: err instanceof RunError ? err.kind : 'internal_error' };
+      }
+    })();
+    live.set(id2, { promise, controller, startedAt, entry });
+  }
+
+  const tick = (ms) => new Promise((r) => { const t = setTimeout(() => r({ tick: true }), Math.max(0, ms)); t.unref?.(); });
+  const cancelRest = async () => {
+    const pending = [...live.values()];
+    if (!pending.length) return;
+    for (const other of pending) other.controller.abort();
+    // They were just killed, so this returns at once; the timer is only a safety net.
+    await Promise.race([Promise.allSettled(pending.map((o) => o.promise)), tick(3000)]);
+    live.clear();
+  };
+
+  for (;;) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    const head = [...live.values()].reduce((x, y) => (x && x.startedAt >= y.startedAt ? x : y), null);
+    const sinceLast = head ? Date.now() - head.startedAt : Infinity;
+
+    if (!stopLaunching && next < queue.length && (sinceLast >= hedgeAfter || queue[next].immediate)) {
+      const entry = queue[next++];
+      const cool = entry.force ? null : coolingDown(entry.s.key);
+      if (cool) {
+        attempts.push({ key: entry.s.key, skipped: true, reason: cool.kind });
+        // Everything paused: give the last resort one try anyway. A pause recorded minutes
+        // ago should not leave Claude with no answer while there is still time to ask.
+        if (next >= queue.length && !live.size && !forcedLastResort) { queue.push({ ...entry, force: true, immediate: true }); forcedLastResort = true; }
+        continue;
+      }
+      if (remaining < MIN_ATTEMPT_MS) { attempts.push({ key: entry.s.key, skipped: true, reason: 'no time left' }); continue; }
+      launch(entry);
       continue;
     }
-    const remaining = deadline - Date.now();
-    if (remaining < MIN_ATTEMPT_MS) { attempts.push({ key: s.key, skipped: true, reason: 'no time left' }); break; }
-    const isLast = queue.slice(i + 1).every((n) => !n.force && coolingDown(n.s.key));
-    // A hanging model may not eat the time the next family needs.
-    const budget = isLast ? remaining : Math.max(MIN_ATTEMPT_MS, Math.round(remaining * 0.6));
-    const t0 = Date.now();
-    try {
-      const result = await callModel(s, { packet: remind ? packet.text + REMINDER : packet.text, workdir: dir, schema, timeoutMs: budget });
-      const raw = result.json || extractJson(result.text);
-      const json = hasRequiredKeys(raw, schema) ? raw : completeShape(raw, schema);
-      if (!json) throw new RunError('schema', 'the answer did not match the agent schema');
-      markSuccess(s.key);
+    if (!live.size) break;
 
+    const moreToStart = !stopLaunching && next < queue.length;
+    const settled = await Promise.race([
+      ...[...live.values()].map((v) => v.promise),
+      tick(moreToStart ? Math.min(remaining, hedgeAfter - sinceLast) : remaining),
+    ]);
+    if (settled.tick) continue;
+
+    const meta = live.get(settled.id2);
+    live.delete(settled.id2);
+    const { s } = meta.entry;
+
+    if (settled.ok) {
+      markSuccess(s.key);
+      await cancelRest();
+      const json = settled.json;
       let verification = null;
       if (agent.output === 'hallucination') {
         const withFile = (json.findings || []).filter((f) => f.file);
@@ -123,27 +184,33 @@ export async function runAgent({ id, snapshot, input, objective, workdir, paths 
       logEvent({
         kind: 'agent', agent: id, lane: s.lane, model: s.model, tier: s.tier, status: 'ok', durationMs, turnId,
         runtimeVersion: snapshot.version, fallbacks: attempts.length, packetChars: packet.chars,
-        inputTokens: result.usage?.inputTokens, cachedInputTokens: result.usage?.cachedInputTokens, outputTokens: result.usage?.outputTokens,
+        inputTokens: settled.usage?.inputTokens, cachedInputTokens: settled.usage?.cachedInputTokens, outputTokens: settled.usage?.outputTokens,
       });
       appendTrace({ type: 'agent', ...base, status: 'ok', lane: s.lane, model: s.model, durationMs, promptVersion: agent.promptVersion });
       return {
         ok: true, ...base, name: agent.name, promptVersion: agent.promptVersion, lane: s.lane, model: s.model, tier: s.tier,
-        attempts, durationMs, usage: result.usage || null, verification, result: json,
+        attempts, durationMs, usage: settled.usage || null, verification, result: json,
       };
-    } catch (err) {
-      const kind = err instanceof RunError ? err.kind : 'internal_error';
-      attempts.push({ key: s.key, kind, durationMs: Date.now() - t0, ...(force ? { forced: true } : {}) });
-      // A bad answer says something about this answer, not about the model: no cooldown.
-      if (kind !== 'schema' && kind !== 'empty_response') markFailure(s.key, kind);
-      // Ask the same model again right away, with a reminder. It is the quickest way to an
-      // answer: the next family takes longer to start than a reminded retry takes to run.
-      if ((kind === 'schema' || kind === 'empty_response') && !reminded && deadline - Date.now() >= 12000) {
-        queue.splice(i + 1, 0, { s, force: true, remind: true });
-        reminded = true;
-      }
-      if (!FALLTHROUGH.has(kind)) break;
+    }
+
+    attempts.push({ key: s.key, kind: settled.kind, durationMs: Date.now() - meta.startedAt, ...(meta.entry.force ? { forced: true } : {}) });
+    if (!NO_COOLDOWN.has(settled.kind)) markFailure(s.key, settled.kind);
+    // Ask the same model again right away, with a reminder. It is the quickest way to an
+    // answer: the next family takes longer to start than a reminded retry takes to run.
+    if ((settled.kind === 'schema' || settled.kind === 'empty_response') && !reminded && deadline - Date.now() >= 12000) {
+      queue.splice(next, 0, { s, force: true, remind: true, immediate: true });
+      reminded = true;
+    }
+    if (!FALLTHROUGH.has(settled.kind)) stopLaunching = true;
+    // The queue ran out while this one was in flight and every other model was paused.
+    if (!stopLaunching && !live.size && next >= queue.length && !forcedLastResort && chain.length
+      && deadline - Date.now() >= MIN_ATTEMPT_MS) {
+      queue.push({ s: chain[chain.length - 1], force: true, immediate: true });
+      forcedLastResort = true;
     }
   }
+  for (const [, other] of live) attempts.push({ key: other.entry.s.key, kind: 'cut off when the time ran out' });
+  await cancelRest();
 
   logEvent({ kind: 'agent', agent: id, status: 'error', error: 'all_failed', durationMs: Date.now() - started, turnId, runtimeVersion: snapshot.version, fallbacks: attempts.length });
   appendTrace({ type: 'agent', ...base, status: 'error', attempts });

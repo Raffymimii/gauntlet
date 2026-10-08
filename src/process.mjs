@@ -28,9 +28,14 @@ function killTree(child) {
 /**
  * @returns {Promise<{code, signal, stdout, stderr, truncated, timedOut, durationMs}>}
  */
-export function run(command, args, { cwd, stdin = '', timeoutMs = 300000, maxOutputChars = 60000, env = {} } = {}) {
+export function run(command, args, { cwd, stdin = '', timeoutMs = 300000, maxOutputChars = 60000, env = {}, signal } = {}) {
   return new Promise((resolve, reject) => {
     const started = Date.now();
+    // Cancelled before it even started: never spawn the provider at all.
+    if (signal?.aborted) {
+      resolve({ code: null, signal: null, stdout: '', stderr: '', truncated: false, timedOut: false, aborted: true, durationMs: 0 });
+      return;
+    }
     let child;
     try {
       child = spawn(command, args, {
@@ -50,6 +55,7 @@ export function run(command, args, { cwd, stdin = '', timeoutMs = 300000, maxOut
     let truncated = false;
     let timedOut = false;
     let settled = false;
+    let aborted = false;
     const errCap = Math.min(8000, maxOutputChars);
 
     child.stdout.setEncoding('utf8');
@@ -65,17 +71,25 @@ export function run(command, args, { cwd, stdin = '', timeoutMs = 300000, maxOut
 
     const timer = setTimeout(() => { timedOut = true; killTree(child); }, timeoutMs);
 
+    // Cancellation: a hedged call whose sibling already answered is killed here instead of
+    // being left to run to its own deadline and spend subscription quota on an answer
+    // nobody will read.
+    const onAbort = () => { aborted = true; killTree(child); };
+    if (signal) signal.addEventListener('abort', onAbort, { once: true });
+
     child.on('error', (err) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      signal?.removeEventListener?.('abort', onAbort);
       reject(new RunError('spawn_failed', `cannot start ${command}: ${err.code || err.message}`));
     });
-    child.on('close', (code, signal) => {
+    child.on('close', (code, sig) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      resolve({ code, signal, stdout: out, stderr: errOut, truncated, timedOut, durationMs: Date.now() - started });
+      signal?.removeEventListener?.('abort', onAbort);
+      resolve({ code, signal: sig, stdout: out, stderr: errOut, truncated, timedOut, aborted, durationMs: Date.now() - started });
     });
 
     child.stdin.on('error', () => { /* the CLI may close stdin early */ });

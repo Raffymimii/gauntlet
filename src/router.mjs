@@ -130,6 +130,9 @@ export function callModel(s, args) {
   return fn({ ...args, model: s.model, effort: s.effort });
 }
 
+/** Failures that say nothing about the model: the caller cancelled, or the answer was malformed. */
+export const NO_COOLDOWN = new Set(['aborted', 'schema', 'empty_response']);
+
 /**
  * Walk the chain until a model answers.
  * @returns {Promise<{result, served, attempts}>}

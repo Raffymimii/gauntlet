@@ -27,7 +27,8 @@ codex/deep -> codex/standard -> gemini/deep -> oss/deep -> claude (via Antigravi
 
 - **Moves to the next model:** quota exhausted, model unavailable, not signed in, CLI
   missing, empty answer, provider error.
-- **Stops:** a timeout. Trying elsewhere would double the wait.
+- **Stops:** a timeout. Trying elsewhere would double the wait. (The internal agents handle
+  timeouts differently; see below.)
 
 A model that failed is paused (20 minutes for quota, longer for "model not available").
 The pause is recorded in `~/.gauntlet/state/provider-health.json`, so every process sees it.
@@ -46,12 +47,22 @@ configuration by:
 - a prompt, with lessons appended;
 - an answer schema.
 
-Their chain is: own family (two models), each fallback family, then Claude. Unlike the
-MCP tools, an agent also moves on after a timeout or a malformed answer, because Claude is
-waiting for the result. Its time budget is shared across the chain, and a non-final
-attempt gets at most 60% of what's left. After an empty or malformed answer, the same model
-is asked once more with a reminder. If every model is paused, the last resort is tried
-anyway.
+Their models are tried **side by side, not one after the other**. The first one starts with
+the whole budget; if it is still thinking after 40% of that budget, the next family starts
+beside it; the first valid answer wins and the losers are cancelled through an
+`AbortSignal`, so no CLI is left burning quota on an answer nobody will read.
+
+That matters more than it sounds. The obvious design is a queue that splits the budget
+between the models, and it fails in a way that is easy to miss: with a 45-second budget, a
+first model that needs 26 seconds on a bad day is killed at 27, the second is handed 11
+seconds, which is not enough to answer at all, and the agent returns nothing even though
+both models were working. Measured over 338 real calls, that design answered 64% of the
+time and every single failure was a timeout. Hedging removes the whole class.
+
+An agent also moves on after a timeout or a malformed answer, unlike the MCP tools, because
+Claude is waiting for the result. After an empty or malformed answer the same model is asked
+once more with a reminder, which is quicker than waiting for another family to start. If
+every model is paused, the last resort is tried anyway.
 
 ## Runtime versions and open chats
 
